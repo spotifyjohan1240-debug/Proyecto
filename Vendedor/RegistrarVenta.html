@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
         integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous" />
 
-    <title>Plan Separe - POS</title>
+    <title>Registrar Venta - POS</title>
 </head>
 
 <body style="background-color: #f4f5f7;">
@@ -17,14 +17,14 @@
 
         <!-- Barra superior de navegación -->
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h3 class="h4 font-weight-bold text-dark m-0">Módulo de Plan Separe</h3>
+            <h3 class="h4 font-weight-bold text-dark m-0">Módulo de Venta</h3>
             <a href="PanelCentralVendedor.html" class="btn btn-outline-secondary font-weight-bold">
                 ← Volver al Panel
             </a>
         </div>
 
-        <!-- ================= VISTA 1: SELECCIÓN DE PRODUCTOS (ESTILO VENTA) ================= -->
-        <div id="vistaVenta" class="row flex-fill">
+        <!-- Contenido Principal: Pantalla Dividida -->
+        <div class="row flex-fill">
 
             <!-- PANEL IZQUIERDO: Transmisión de Cámara en Vivo -->
             <div class="col-12 col-lg-5 mb-4 mb-lg-0 d-flex flex-column">
@@ -34,13 +34,14 @@
                             Escáner de Productos
                         </h5>
 
+                        <!-- Visor de la Cámara (Línea negra corregida con object-fit: cover) -->
                         <div
                             class="embed-responsive embed-responsive-4by3 bg-dark rounded overflow-hidden shadow-inner">
                             <video id="webcam" class="embed-responsive-item" autoplay playsinline muted
                                 style="object-fit: cover;"></video>
                         </div>
                         <small class="text-muted text-center d-block mt-2">
-                            Ubique el producto frente a la cámara.
+                            Ubique el código o producto frente al lente.
                         </small>
                     </div>
 
@@ -58,10 +59,10 @@
                 <div class="card shadow-sm border-0 flex-fill d-flex flex-column justify-content-between p-3">
                     <div>
                         <h5 class="card-title font-weight-bold text-dark mb-3">
-                            Productos para Plan Separe
+                            Detalle de la Factura
                         </h5>
 
-                        <!-- Alerta de advertencia si faltan especificaciones -->
+                        <!-- Alerta de advertencia si falta la talla -->
                         <div id="alertaTalla" class="alert alert-warning alert-dismissible fade show d-none"
                             role="alert">
                             <strong>¡Atención!</strong> Todos los productos deben tener sus especificaciones completas.
@@ -118,136 +119,80 @@
                     <!-- Resumen y Totalizador -->
                     <div class="border-top pt-3 mt-3">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <span class="h4 m-0 text-muted">Total Compra:</span>
+                            <span class="h4 m-0 text-muted">Total a Cobrar:</span>
                             <span id="totalVenta" class="h2 m-0 font-weight-bold text-success">$45.000</span>
                         </div>
-                        <!-- Botón Apartar -->
-                        <button type="button" id="btnApartar"
+                        <!-- Botón que activa la validación y la ventana emergente -->
+                        <button type="button" id="btnFinalizarCobrar"
                             class="btn btn-primary btn-lg btn-block font-weight-bold shadow">
-                            Apartar
+                            Finalizar y Cobrar
                         </button>
                     </div>
                 </div>
             </div>
 
         </div>
+    </div>
 
-        <!-- ================= VISTA 2: DATOS DEL CLIENTE Y ABONO (Oculto inicialmente) ================= -->
-        <div id="vistaCliente" class="row flex-fill justify-content-center align-items-center" style="display: none;">
-            <div class="col-12 col-md-6">
-                <div class="card shadow-sm border-0 p-4 bg-white rounded-lg">
-                    <h4 class="font-weight-bold text-dark mb-1">Datos del Cliente y Abono Inicial</h4>
-                    <p class="text-muted small mb-3">Ingrese la información de contacto y el valor con el que separa.
-                    </p>
+    <!-- VENTANA EMERGENTE (MODAL) DE PRE-FACTURACIÓN -->
+    <div class="modal fade" id="modalConfirmarVenta" tabindex="-1" role="dialog" aria-labelledby="modalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
 
-                    <div id="errorCliente" class="alert alert-danger font-weight-bold py-2 small mb-3"
-                        style="display: none;">
-                        ⚠️ Complete todos los campos correctamente (el abono no puede superar el total ni ser cero).
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title font-weight-bold text-dark" id="modalLabel">
+                        📋 Resumen de Venta para Confirmación
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <p class="text-muted">Por favor, verifique los productos, tallas y cantidades con el cliente antes
+                        de confirmar el cobro definitivo:</p>
+
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Producto</th>
+                                    <th style="width: 100px;">Talla</th>
+                                    <th style="width: 100px;">Cantidad</th>
+                                    <th>Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resumenModalProductos">
+                                <!-- Se llena automáticamente con JavaScript -->
+                            </tbody>
+                        </table>
                     </div>
 
-                    <div class="form-group mb-3">
-                        <label class="font-weight-bold text-dark">Nombre del Cliente</label>
-                        <input type="text" id="inputNombre" class="form-control form-control-lg">
-                    </div>
-
-                    <div class="form-group mb-3">
-                        <label class="font-weight-bold text-dark">Teléfono de Contacto</label>
-                        <input type="text" id="inputTelefono" class="form-control form-control-lg">
-                    </div>
-
-                    <div class="form-group mb-4">
-                        <label class="font-weight-bold text-dark">Valor del Abono Inicial ($)</label>
-                        <input type="text" id="inputAbono"
-                            class="form-control form-control-lg text-success font-weight-bold" autocomplete="off">
-                        <small class="text-muted">Total de la compra: <span id="lblTotalCompraRef"
-                                class="font-weight-bold text-dark">$0</span></small>
-                    </div>
-
-                    <div class="d-flex justify-content-between">
-                        <button type="button" id="btnRegresarCarrito"
-                            class="btn btn-outline-secondary font-weight-bold px-4">
-                            ← Regresar al Carrito
-                        </button>
-                        <button type="button" id="btnContinuarResumen"
-                            class="btn btn-success btn-lg font-weight-bold px-4">
-                            Continuar →
-                        </button>
+                    <div class="text-right mt-3 bg-light p-3 rounded">
+                        <h4 class="font-weight-bold text-success m-0">
+                            Total a Pagar: <span id="totalModalFinal">$0</span>
+                        </h4>
                     </div>
                 </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary font-weight-bold" data-dismiss="modal">
+                        ← Regresar y Editar
+                    </button>
+                    <button type="button" id="btnConfirmarDefinitivo" class="btn btn-success font-weight-bold px-4">
+                        ¡Confirmar y Cobrar!
+                    </button>
+                </div>
+
             </div>
         </div>
-
-        <!-- ================= VISTA 3: RESUMEN Y CONFIRMACIÓN FINAL (Oculto inicialmente) ================= -->
-        <div id="vistaResumen" class="row flex-fill" style="display: none;">
-            <!-- PANEL IZQUIERDO: Datos del Cliente y Totales Financieros -->
-            <div class="col-12 col-lg-5 mb-4 mb-lg-0 d-flex flex-column">
-                <div class="card shadow-sm border-0 flex-fill d-flex flex-column justify-content-between p-4 bg-white">
-                    <div>
-                        <h5 class="card-title font-weight-bold text-dark mb-3">
-                            📋 Datos y Balance del Separe
-                        </h5>
-                        <div class="p-3 bg-light rounded border mb-3">
-                            <span class="badge badge-secondary mb-2">Cliente</span>
-                            <h5 class="font-weight-bold text-dark mb-1" id="resumenClienteNombre">Carlos Pérez</h5>
-                            <p class="text-muted small mb-0">Teléfono: <strong id="resumenClienteTelefono"
-                                    class="text-dark">3001234567</strong></p>
-                        </div>
-
-                        <div class="p-3 bg-light rounded border">
-                            <div class="mb-2 text-muted">Valor Total: <strong id="resTotal"
-                                    class="text-dark float-right">$0</strong></div>
-                            <div class="mb-2 text-success">Separa con (Abono): <strong id="resAbono"
-                                    class="float-right">$0</strong></div>
-                            <hr>
-                            <div class="text-danger font-weight-bold h5 m-0">Restan (Saldo): <strong id="resRestante"
-                                    class="float-right">$0</strong></div>
-                        </div>
-                    </div>
-
-                    <div class="mt-4">
-                        <button type="button" id="btnRegresarCliente"
-                            class="btn btn-outline-secondary font-weight-bold btn-block mb-2">
-                            ← Modificar Datos
-                        </button>
-                        <button type="button" id="btnConfirmarDefinitivo"
-                            class="btn btn-success btn-lg btn-block font-weight-bold shadow">
-                            Confirmar Plan Separe
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- PANEL DERECHO: Lista de productos apartados -->
-            <div class="col-12 col-lg-7 d-flex flex-column">
-                <div class="card shadow-sm border-0 flex-fill d-flex flex-column justify-content-between p-4 bg-white">
-                    <div>
-                        <h5 class="card-title font-weight-bold text-dark mb-3">
-                            Productos Incluidos en el Separe
-                        </h5>
-                        <div class="table-responsive">
-                            <table class="table table-sm table-bordered">
-                                <thead class="thead-light">
-                                    <tr>
-                                        <th>Producto</th>
-                                        <th style="width: 100px;">Talla</th>
-                                        <th style="width: 80px;">Cant.</th>
-                                        <th>Subtotal</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="resumenModalProductos">
-                                    <!-- Se llena dinámicamente -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
     </div>
 
     <!-- Scripts de Bootstrap y Lógica interactiva -->
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+        crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct"
         crossorigin="anonymous"></script>
@@ -269,18 +214,6 @@
         ];
         let contadorEjemplo = 0;
 
-        // Variables globales para datos de cliente
-        let clienteData = { nombre: '', telefono: '', abono: 0 };
-
-        // Formatear automáticamente el campo de abono con puntos de miles mientras se escribe
-        $('#inputAbono').on('input', function () {
-            let valorLimpio = $(this).val().replace(/\D/g, '');
-            if (valorLimpio !== '') {
-                valorLimpio = parseInt(valorLimpio, 10).toLocaleString('es-CO');
-            }
-            $(this).val(valorLimpio);
-        });
-
         // 3. Función para recalcular el Total
         function calcularTotal() {
             let total = 0;
@@ -294,7 +227,7 @@
             $('#totalVenta').text('$' + total.toLocaleString('es-CO'));
         }
 
-        // 4. Control del botón "Escanear siguiente producto" con validación de especificación
+        // 4. Control del botón "Escanear siguiente producto" con validación de talla
         $('#btnEscanear').click(function () {
             let faltaTalla = false;
 
@@ -371,14 +304,14 @@
             $('#alertaTalla').addClass('d-none');
         });
 
-        // 6. Transición de Vista 1 (Venta) a Vista 2 (Datos de Cliente) al hacer clic en "Apartar"
-        $('#btnApartar').click(function () {
+        // 6. Lógica de la ventana emergente (Modal de Confirmación) con validación estricta de tallas
+        $('#btnFinalizarCobrar').click(function () {
             if ($('#listaProductos tr').length === 0) {
-                alert("No hay productos en la lista para apartar.");
+                alert("No hay productos en la lista para cobrar.");
                 return;
             }
 
-            // Validar que ninguna fila se quede sin especificación antes de continuar
+            // Validar que ninguna fila se quede sin talla antes de abrir el modal de pago
             let faltaTalla = false;
             $('.selector-talla').each(function () {
                 if (!$(this).val()) {
@@ -392,56 +325,8 @@
             }
 
             $('#alertaTalla').addClass('d-none');
-
-            // Mostrar el total actual en la referencia del formulario de cliente
-            const totalActual = $('#totalVenta').text();
-            $('#lblTotalCompraRef').text(totalActual);
-
-            // Cambiar de vista
-            $('#vistaVenta').hide();
-            $('#vistaCliente').fadeIn(200);
-        });
-
-        // Regresar de cliente a carrito
-        $('#btnRegresarCarrito').click(function () {
-            $('#vistaCliente').hide();
-            $('#vistaVenta').fadeIn(200);
-        });
-
-        // 7. Transición de Vista 2 a Vista 3 (Resumen Final)
-        $('#btnContinuarResumen').click(function () {
-            const nombre = $('#inputNombre').val().trim();
-            const telefono = $('#inputTelefono').val().trim();
-
-            // Limpiar puntos del abono para lectura numérica correcta
-            const abonoTexto = $('#inputAbono').val().replace(/\./g, '');
-            const abono = parseFloat(abonoTexto);
-
-            // Calcular total numérico
-            let totalNumerico = 0;
-            $('#listaProductos tr').each(function () {
-                const precio = parseInt($(this).data('precio'));
-                const cant = parseInt($(this).find('.cantidad').val());
-                totalNumerico += (precio * cant);
-            });
-
-            if (!nombre || !telefono || isNaN(abono) || abono <= 0 || abono >= totalNumerico) {
-                $('#errorCliente').slideDown(150);
-                return;
-            }
-
-            $('#errorCliente').hide();
-            clienteData = { nombre, telefono, abono };
-
-            // Llenar datos en el panel de resumen
-            $('#resumenClienteNombre').text(nombre);
-            $('#resumenClienteTelefono').text(telefono);
-            $('#resTotal').text('$' + totalNumerico.toLocaleString('es-CO'));
-            $('#resAbono').text('$' + abono.toLocaleString('es-CO'));
-            $('#resRestante').text('$' + (totalNumerico - abono).toLocaleString('es-CO'));
-
-            // Construir la tabla de productos en el resumen
             $('#resumenModalProductos').empty();
+
             $('#listaProductos tr').each(function () {
                 const infoProducto = $(this).find('td:eq(0)').html();
                 const tallaSeleccionada = $(this).find('.selector-talla').val();
@@ -449,31 +334,25 @@
                 const subtotalVal = $(this).find('.subtotal').text();
 
                 const filaConstruida = `
-                    <tr>
-                      <td>${infoProducto}</td>
-                      <td><strong>${tallaSeleccionada}</strong></td>
-                      <td class="text-center">${cantidadVal}</td>
-                      <td class="font-weight-bold">${subtotalVal}</td>
-                    </tr>
-                `;
+            <tr>
+              <td>${infoProducto}</td>
+              <td><strong>${tallaSeleccionada}</strong></td>
+              <td class="text-center">${cantidadVal}</td>
+              <td class="font-weight-bold">${subtotalVal}</td>
+            </tr>
+          `;
                 $('#resumenModalProductos').append(filaConstruida);
             });
 
-            // Cambiar a la vista de resumen
-            $('#vistaCliente').hide();
-            $('#vistaResumen').fadeIn(200);
+            $('#totalModalFinal').text($('#totalVenta').text());
+            $('#modalConfirmarVenta').modal('show');
         });
 
-        // Regresar de resumen a cliente
-        $('#btnRegresarCliente').click(function () {
-            $('#vistaResumen').hide();
-            $('#vistaCliente').fadeIn(200);
-        });
-
-        // 8. Confirmación definitiva del Plan Separe
         $('#btnConfirmarDefinitivo').click(function () {
-            alert("¡Plan separe registrado con éxito!");
-            window.location.href = 'PanelCentralVendedor.html';
+            alert("¡Venta procesada y cobrada con éxito!");
+            $('#modalConfirmarVenta').modal('hide');
+            $('#listaProductos').empty();
+            calcularTotal();
         });
     </script>
 </body>
