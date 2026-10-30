@@ -26,22 +26,32 @@
         <!-- Contenido Principal: Pantalla Dividida -->
         <div class="row flex-fill">
 
-            <!-- PANEL IZQUIERDO: Transmisión de Cámara en Vivo -->
+            <!-- PANEL IZQUIERDO: Transmisión de Cámara y Buscador Manual -->
             <div class="col-12 col-lg-5 mb-4 mb-lg-0 d-flex flex-column">
                 <div class="card shadow-sm border-0 flex-fill d-flex flex-column justify-content-between p-3">
                     <div>
                         <h5 class="card-title font-weight-bold text-center text-muted mb-3">
-                            Escáner de Productos
+                            Escáner o Búsqueda
                         </h5>
 
-                        <!-- Visor de la Cámara (Línea negra corregida con object-fit: cover) -->
+                        <!-- Visor de la Cámara -->
                         <div
-                            class="embed-responsive embed-responsive-4by3 bg-dark rounded overflow-hidden shadow-inner">
+                            class="embed-responsive embed-responsive-4by3 bg-dark rounded overflow-hidden shadow-inner mb-3">
                             <video id="webcam" class="embed-responsive-item" autoplay playsinline muted
                                 style="object-fit: cover;"></video>
                         </div>
-                        <small class="text-muted text-center d-block mt-2">
-                            Ubique el código o producto frente al lente.
+
+                        <!-- Buscador Manual de Emergencia -->
+                        <div class="input-group mb-2">
+                            <input type="text" id="inputBusquedaManual" class="form-control"
+                                placeholder="Escribe nombre o código del producto...">
+                            <div class="input-group-append">
+                                <button class="btn btn-warning font-weight-bold text-dark" type="button"
+                                    id="btnBuscarManual">Buscar</button>
+                            </div>
+                        </div>
+                        <small class="text-muted text-center d-block">
+                            Ubique el código frente al lente o use la búsqueda manual.
                         </small>
                     </div>
 
@@ -62,7 +72,7 @@
                             Detalle de la Factura
                         </h5>
 
-                        <!-- Alerta de advertencia si falta la talla -->
+                        <!-- Alerta de advertencia si faltan especificaciones -->
                         <div id="alertaTalla" class="alert alert-warning alert-dismissible fade show d-none"
                             role="alert">
                             <strong>¡Atención!</strong> Todos los productos deben tener sus especificaciones completas.
@@ -134,10 +144,40 @@
         </div>
     </div>
 
-    <!-- VENTANA EMERGENTE (MODAL) DE PRE-FACTURACIÓN -->
+    <!-- MODAL DE RESULTADOS DE BÚSQUEDA MANUAL -->
+    <div class="modal fade" id="modalResultadosBusqueda" tabindex="-1" role="dialog"
+        aria-labelledby="modalBusquedaLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title font-weight-bold" id="modalBusquedaLabel">
+                        🔍 Coincidencias encontradas
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body bg-light">
+                    <p class="text-muted small mb-3">Se encontraron productos con ese criterio. Seleccione el artículo
+                        exacto que desea agregar a la venta:</p>
+
+                    <!-- Contenedor de Tarjetas de Resultados -->
+                    <div class="row" id="contenedorTarjetasResultados">
+                        <!-- Se genera dinámicamente con JS -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary font-weight-bold"
+                        data-dismiss="modal">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VENTANA EMERGENTE (MODAL) DE PRE-FACTURACIÓN Y PAGO -->
     <div class="modal fade" id="modalConfirmarVenta" tabindex="-1" role="dialog" aria-labelledby="modalLabel"
         aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content">
 
                 <div class="modal-header bg-light">
@@ -150,29 +190,88 @@
                 </div>
 
                 <div class="modal-body">
-                    <p class="text-muted">Por favor, verifique los productos, tallas y cantidades con el cliente antes
-                        de confirmar el cobro definitivo:</p>
+                    <div class="row">
+                        <!-- COLUMNA IZQUIERDA: Productos y Total (Mayor parte) -->
+                        <div class="col-12 col-lg-8 border-right">
+                            <p class="text-muted">Por favor, verifique los productos, tallas y cantidades con el cliente
+                                antes de confirmar el cobro definitivo:</p>
 
-                    <div class="table-responsive">
-                        <table class="table table-sm table-bordered">
-                            <thead class="thead-light">
-                                <tr>
-                                    <th>Producto</th>
-                                    <th style="width: 100px;">Talla</th>
-                                    <th style="width: 100px;">Cantidad</th>
-                                    <th>Subtotal</th>
-                                </tr>
-                            </thead>
-                            <tbody id="resumenModalProductos">
-                                <!-- Se llena automáticamente con JavaScript -->
-                            </tbody>
-                        </table>
-                    </div>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered">
+                                    <thead class="thead-light">
+                                        <tr>
+                                            <th>Producto</th>
+                                            <th style="width: 100px;">Talla</th>
+                                            <th style="width: 100px;">Cantidad</th>
+                                            <th>Subtotal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="resumenModalProductos">
+                                        <!-- Se llena automáticamente con JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
 
-                    <div class="text-right mt-3 bg-light p-3 rounded">
-                        <h4 class="font-weight-bold text-success m-0">
-                            Total a Pagar: <span id="totalModalFinal">$0</span>
-                        </h4>
+                            <div class="text-right mt-3 bg-light p-3 rounded">
+                                <h4 class="font-weight-bold text-success m-0">
+                                    Total a Pagar: <span id="totalModalFinal">$0</span>
+                                </h4>
+                            </div>
+                        </div>
+
+                        <!-- COLUMNA DERECHA: Formulario de Método de Pago y Descuento (Parte pequeña) -->
+                        <div class="col-12 col-lg-4 d-flex flex-column justify-content-start mt-3 mt-lg-0">
+
+                            <!-- TARJETA 1: Método de Pago -->
+                            <div class="p-3 bg-light rounded border mb-3">
+                                <h5 class="font-weight-bold text-dark mb-3">💳 Método de Pago</h5>
+
+                                <!-- Alerta de error si no se selecciona el método de pago -->
+                                <div id="errorMetodoPago"
+                                    class="alert alert-danger font-weight-bold py-2 small mb-3 d-none">
+                                    ⚠️ Debe seleccionar un método de pago.
+                                </div>
+
+                                <div class="form-group mb-0">
+                                    <label class="font-weight-bold text-dark">Seleccionar Opción</label>
+                                    <select id="selectMetodoPago" class="form-control form-control-lg">
+                                        <option value="" selected disabled>-- Seleccione --</option>
+                                        <option value="Efectivo">Efectivo</option>
+                                        <option value="Transferencia">Transferencia</option>
+                                        <option value="Tarjeta">Tarjeta</option>
+                                        <option value="Addi">Addi</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- TARJETA 2: Descuento -->
+                            <div class="p-3 bg-light rounded border">
+                                <h5 class="font-weight-bold text-dark mb-3">🏷️ Aplicar Descuento</h5>
+
+                                <!-- Alertas para descuento -->
+                                <div id="errorDescuento"
+                                    class="alert alert-danger font-weight-bold py-2 small mb-3 d-none">
+                                    ⚠️ El precio con descuento no es válido.
+                                </div>
+                                <div id="exitoDescuento"
+                                    class="alert alert-success font-weight-bold py-2 small mb-3 d-none">
+                                    ✓ Descuento aplicado correctamente.
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label class="font-weight-bold text-dark">Precio Total con Descuento ($)</label>
+                                    <input type="text" id="inputPrecioDescuento" inputmode="numeric"
+                                        class="form-control form-control-lg text-primary font-weight-bold"
+                                        autocomplete="off">
+                                </div>
+
+                                <button type="button" id="btnAplicarDescuento"
+                                    class="btn btn-outline-primary btn-block font-weight-bold">
+                                    Aplicar Descuento
+                                </button>
+                            </div>
+
+                        </div>
                     </div>
                 </div>
 
@@ -206,13 +305,16 @@
                 .catch(err => { console.log("La cámara no se pudo activar o no hay permiso: ", err); });
         }
 
-        // 2. Base de productos ficticios para la prueba
+        // 2. Base de productos ampliada para simulación y búsqueda manual
         const productosEjemplo = [
+            { nombre: "Camiseta Casual Azul", cod: "77012345", precio: 45000 },
             { nombre: "Zapatos Deportivos Negros", cod: "77098765", precio: 120000 },
             { nombre: "Jean Clásico Azul", cod: "77045612", precio: 85000 },
             { nombre: "Chaqueta Impermeable", cod: "77032165", precio: 150000 }
         ];
         let contadorEjemplo = 0;
+        let totalRealNumerico = 0;
+        let totalConDescuento = 0;
 
         // 3. Función para recalcular el Total
         function calcularTotal() {
@@ -225,6 +327,40 @@
                 total += subtotal;
             });
             $('#totalVenta').text('$' + total.toLocaleString('es-CO'));
+        }
+
+        // Función auxiliar para agregar una fila de producto al carrito
+        function agregarProductoAlCarrito(p) {
+            const nuevaFila = `
+              <tr data-precio="${p.precio}">
+                <td>
+                  <span class="font-weight-bold d-block">${p.nombre}</span>
+                  <small class="text-muted">COD: ${p.cod}</small>
+                </td>
+                <td>
+                  <select class="form-control form-control-sm selector-talla">
+                    <option value="" selected disabled>Seleccionar</option>
+                    <option value="S">S</option>
+                    <option value="M">M</option>
+                    <option value="L">L</option>
+                    <option value="XL">XL</option>
+                  </select>
+                </td>
+                <td>
+                  <div class="input-group input-group-sm">
+                    <button class="btn btn-outline-secondary btn-restar" type="button">-</button>
+                    <input type="text" class="form-control text-center cantidad" value="1" readonly>
+                    <button class="btn btn-outline-secondary btn-sumar" type="button">+</button>
+                  </div>
+                </td>
+                <td class="font-weight-bold subtotal">$${p.precio.toLocaleString('es-CO')}</td>
+                <td class="text-center">
+                  <button class="btn btn-sm btn-outline-danger btn-eliminar">Eliminar</button>
+                </td>
+              </tr>
+            `;
+            $('#listaProductos').append(nuevaFila);
+            calcularTotal();
         }
 
         // 4. Control del botón "Escanear siguiente producto" con validación de talla
@@ -247,40 +383,63 @@
             const p = productosEjemplo[contadorEjemplo % productosEjemplo.length];
             contadorEjemplo++;
 
-            const nuevaFila = `
-          <tr data-precio="${p.precio}">
-            <td>
-              <span class="font-weight-bold d-block">${p.nombre}</span>
-              <small class="text-muted">COD: ${p.cod}</small>
-            </td>
-            <td>
-              <select class="form-control form-control-sm selector-talla">
-                <option value="" selected disabled>Seleccionar</option>
-                <option value="36">36</option>
-                <option value="38">38</option>
-                <option value="40">40</option>
-                <option value="42">42</option>
-              </select>
-            </td>
-            <td>
-              <div class="input-group input-group-sm">
-                <button class="btn btn-outline-secondary btn-restar" type="button">-</button>
-                <input type="text" class="form-control text-center cantidad" value="1" readonly>
-                <button class="btn btn-outline-secondary btn-sumar" type="button">+</button>
-              </div>
-            </td>
-            <td class="font-weight-bold subtotal">$${p.precio.toLocaleString('es-CO')}</td>
-            <td class="text-center">
-              <button class="btn btn-sm btn-outline-danger btn-eliminar">Eliminar</button>
-            </td>
-          </tr>
-        `;
-
-            $('#listaProductos').append(nuevaFila);
-            calcularTotal();
+            agregarProductoAlCarrito(p);
         });
 
-        // 5. Botones de sumar, restar, eliminar y cambio de talla
+        // 5. Lógica del Buscador Manual de Emergencia
+        $('#btnBuscarManual').click(function () {
+            const query = $('#inputBusquedaManual').val().trim().toLowerCase();
+
+            const resultados = productosEjemplo.filter(prod =>
+                prod.nombre.toLowerCase().includes(query) || prod.cod.includes(query)
+            );
+
+            if (resultados.length === 0) {
+                alert("No se encontraron productos coincidentes.");
+                return;
+            }
+
+            let htmlCards = '';
+            resultados.forEach(p => {
+                htmlCards += `
+                    <div class="col-12 col-md-4 mb-3">
+                      <div class="card h-100 shadow-sm border-0 text-center p-2">
+                        <!-- Recuadro Placeholder para la Imagen del Producto -->
+                        <div class="bg-secondary text-white rounded d-flex align-items-center justify-content-center mb-2" style="height: 110px;">
+                          <small class="font-weight-bold">[ Foto Producto ]</small>
+                        </div>
+                        <div class="card-body p-1 d-flex flex-column justify-content-between">
+                          <div>
+                            <h6 class="font-weight-bold text-dark m-0 mb-1">${p.nombre}</h6>
+                            <small class="text-muted d-block mb-1">COD: ${p.cod}</small>
+                            <span class="badge badge-success mb-2">$${p.precio.toLocaleString('es-CO')}</span>
+                          </div>
+                          <button type="button" class="btn btn-sm btn-warning font-weight-bold text-dark btn-seleccionar-producto btn-block" data-cod="${p.cod}">
+                            Seleccionar
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                `;
+            });
+
+            $('#contenedorTarjetasResultados').html(htmlCards);
+            $('#modalResultadosBusqueda').modal('show');
+        });
+
+        // Al hacer clic en "Seleccionar" en una tarjeta del modal de búsqueda manual (Corregido con .attr para evitar conflicto de tipos numéricos)
+        $(document).on('click', '.btn-seleccionar-producto', function () {
+            const codigoProd = $(this).attr('data-cod');
+            const productoEncontrado = productosEjemplo.find(p => p.cod === codigoProd);
+
+            if (productoEncontrado) {
+                agregarProductoAlCarrito(productoEncontrado);
+                $('#modalResultadosBusqueda').modal('hide');
+                $('#inputBusquedaManual').val('');
+            }
+        });
+
+        // 6. Botones de sumar, restar, eliminar y cambio de talla
         $(document).on('click', '.btn-sumar', function () {
             let input = $(this).siblings('.cantidad');
             input.val(parseInt(input.val()) + 1);
@@ -304,7 +463,49 @@
             $('#alertaTalla').addClass('d-none');
         });
 
-        // 6. Lógica de la ventana emergente (Modal de Confirmación) con validación estricta de tallas
+        // Ocultar alerta de método de pago al cambiar selección
+        $('#selectMetodoPago').change(function () {
+            if ($(this).val()) {
+                $('#errorMetodoPago').addClass('d-none');
+            }
+        });
+
+        // Formatear automáticamente el input de descuento con puntos de miles mientras se escribe
+        $('#inputPrecioDescuento').on('input', function () {
+            let valorLimpio = $(this).val().replace(/\D/g, '');
+            if (valorLimpio !== '') {
+                let valorFormateado = parseInt(valorLimpio, 10).toLocaleString('es-CO');
+                $(this).val(valorFormateado);
+            } else {
+                $(this).val('');
+            }
+            $('#errorDescuento').addClass('d-none');
+            $('#exitoDescuento').addClass('d-none');
+        });
+
+        // Lógica para evaluar y aplicar el descuento (Máximo 10% internamente)
+        $('#btnAplicarDescuento').click(function () {
+            const valorIngresadoLimpio = $('#inputPrecioDescuento').val().replace(/\./g, '');
+            const valorIngresado = parseFloat(valorIngresadoLimpio);
+
+            const limiteMinimo = totalRealNumerico * 0.9; // Máximo 10% de descuento
+
+            if (isNaN(valorIngresado) || valorIngresado > totalRealNumerico || valorIngresado < limiteMinimo) {
+                $('#exitoDescuento').addClass('d-none');
+                $('#errorDescuento').removeClass('d-none');
+                // Restaurar precio original
+                totalConDescuento = totalRealNumerico;
+                $('#totalModalFinal').text('$' + totalRealNumerico.toLocaleString('es-CO'));
+                return;
+            }
+
+            $('#errorDescuento').addClass('d-none');
+            $('#exitoDescuento').removeClass('d-none');
+            totalConDescuento = valorIngresado;
+            $('#totalModalFinal').text('$' + valorIngresado.toLocaleString('es-CO'));
+        });
+
+        // 7. Lógica de la ventana emergente (Modal de Confirmación) con validación estricta de tallas
         $('#btnFinalizarCobrar').click(function () {
             if ($('#listaProductos tr').length === 0) {
                 alert("No hay productos en la lista para cobrar.");
@@ -326,12 +527,23 @@
 
             $('#alertaTalla').addClass('d-none');
             $('#resumenModalProductos').empty();
+            $('#selectMetodoPago').val(''); // Reiniciar selección
+            $('#errorMetodoPago').addClass('d-none');
+            $('#inputPrecioDescuento').val(''); // Reiniciar input de descuento
+            $('#errorDescuento').addClass('d-none');
+            $('#exitoDescuento').addClass('d-none');
+
+            totalRealNumerico = 0;
 
             $('#listaProductos tr').each(function () {
                 const infoProducto = $(this).find('td:eq(0)').html();
                 const tallaSeleccionada = $(this).find('.selector-talla').val();
                 const cantidadVal = $(this).find('.cantidad').val();
                 const subtotalVal = $(this).find('.subtotal').text();
+
+                const precio = parseInt($(this).data('precio'));
+                const cant = parseInt(cantidadVal);
+                totalRealNumerico += (precio * cant);
 
                 const filaConstruida = `
             <tr>
@@ -344,12 +556,22 @@
                 $('#resumenModalProductos').append(filaConstruida);
             });
 
-            $('#totalModalFinal').text($('#totalVenta').text());
+            totalConDescuento = totalRealNumerico;
+            $('#totalModalFinal').text('$' + totalRealNumerico.toLocaleString('es-CO'));
             $('#modalConfirmarVenta').modal('show');
         });
 
+        // Confirmación definitiva con validación del método de pago
         $('#btnConfirmarDefinitivo').click(function () {
-            alert("¡Venta procesada y cobrada con éxito!");
+            const metodoPago = $('#selectMetodoPago').val();
+
+            if (!metodoPago) {
+                $('#errorMetodoPago').removeClass('d-none');
+                return;
+            }
+
+            $('#errorMetodoPago').addClass('d-none');
+            alert("¡Venta procesada y cobrada con éxito usando " + metodoPago + " por un total de $" + totalConDescuento.toLocaleString('es-CO') + "!");
             $('#modalConfirmarVenta').modal('hide');
             $('#listaProductos').empty();
             calcularTotal();
