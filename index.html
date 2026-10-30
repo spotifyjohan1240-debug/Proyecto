@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+        integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
+
+    <title>Inicio</title>
+</head>
+
+<body style="background-color: #f4f5f7;">
+    <div class="d-flex justify-content-center align-items-center min-vh-100">
+        <div class="card" style="width: 18rem;">
+            <div class="card-body">
+                <form id="formularioDeIngreso">
+                    <div class="form-group">
+                        <label for="campoUsuario">Usuario</label>
+                        <input type="text" class="form-control" id="campoUsuario" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="campoContrasena">Contraseña</label>
+                        <input type="password" class="form-control" id="campoContrasena" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Ingresar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts de Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct"
+        crossorigin="anonymous"></script>
+
+    <!-- Esta seccion debe de ser reemplazada por un metodo mas seguro posteriormente -->
+    <!-- Lógica de validación de prueba para las carpetas -->
+    <script>
+        document.getElementById('formularioDeIngreso').addEventListener('submit', function(evento) {
+            // Evita que la página se recargue sola al presionar ingresar
+            evento.preventDefault();
+
+            // Captura los valores escritos en las cajas
+            let usuarioIngresado = document.getElementById('campoUsuario').value;
+            let contrasenaIngresada = document.getElementById('campoContrasena').value;
+
+            // Valida y redirige según el perfil hacia su carpeta correspondiente
+            if (usuarioIngresado === 'admin' && contrasenaIngresada === '1234') {
+                window.location.href = 'Administrador/PanelCentralAdministrador.html';
+            } 
+            else if (usuarioIngresado === 'vendedor' && contrasenaIngresada === '5678') {
+                window.location.href = 'Vendedor/PanelCentralVendedor.html';
+            } 
+            else {
+                alert('Usuario o contraseña incorrectos. Intenta de nuevo.');
+            }
+        });
+    </script>
+</body>
+
+</html>

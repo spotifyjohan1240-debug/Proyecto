@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+        integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous" />
+
+    <title>Consultar Inventario - POS</title>
+</head>
+
+<body style="background-color: #f4f5f7;">
+    <div class="container-fluid min-vh-100 p-3 p-md-4 d-flex flex-column">
+
+        <!-- Barra superior de navegación -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="h4 font-weight-bold text-dark m-0">Consulta de Inventario</h3>
+            <a href="PanelCentralVendedor.html" class="btn btn-outline-secondary font-weight-bold">
+                ← Volver al Panel
+            </a>
+        </div>
+
+        <!-- Contenido Principal: Pantalla Dividida -->
+        <div class="row flex-fill">
+
+            <!-- PANEL IZQUIERDO: Cámara y Buscador Manual de Emergencia -->
+            <div class="col-12 col-lg-5 mb-4 mb-lg-0 d-flex flex-column">
+                <div class="card shadow-sm border-0 flex-fill d-flex flex-column justify-content-between p-3">
+                    <div>
+                        <h5 class="card-title font-weight-bold text-center text-muted mb-3">
+                            Escáner o Búsqueda
+                        </h5>
+
+                        <!-- Visor de la Cámara -->
+                        <div
+                            class="embed-responsive embed-responsive-4by3 bg-dark rounded overflow-hidden shadow-inner mb-3">
+                            <video id="webcam" class="embed-responsive-item" autoplay playsinline muted
+                                style="object-fit: cover;"></video>
+                        </div>
+
+                        <!-- Buscador Manual de Emergencia -->
+                        <div class="input-group mb-2">
+                            <input type="text" id="inputBusquedaManual" class="form-control"
+                                placeholder="Escribe 'zapatos' para probar el selector...">
+                            <div class="input-group-append">
+                                <button class="btn btn-warning font-weight-bold text-dark" type="button"
+                                    id="btnBuscarManual">Buscar</button>
+                            </div>
+                        </div>
+                        <small class="text-muted text-center d-block">
+                            Ubique el producto frente a la cámara o use la búsqueda manual.
+                        </small>
+                    </div>
+
+                    <!-- Botón para consultar el siguiente producto -->
+                    <div class="mt-3">
+                        <button id="btnConsultarInventario"
+                            class="btn btn-warning btn-lg btn-block font-weight-bold shadow-sm text-dark">
+                            Escanear siguiente producto
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANEL DERECHO: Desglose de Stock (Tallas / Variantes / Especificaciones) -->
+            <div class="col-12 col-lg-7 d-flex flex-column">
+                <div class="card shadow-sm border-0 flex-fill d-flex flex-column justify-content-between p-4">
+
+                    <div>
+                        <!-- Cabecera del Artículo Consultado -->
+                        <div
+                            class="border-bottom pb-3 mb-4 text-center text-md-left d-md-flex justify-content-between align-items-center">
+                            <div>
+                                <h3 id="nombreInventario" class="font-weight-bold text-dark mb-1">
+                                    Zapatos Deportivos Negros
+                                </h3>
+                                <p class="text-muted m-0">
+                                    Código: <span id="codigoInventario"
+                                        class="font-weight-bold text-secondary">77098765</span> |
+                                    Categoría: <span id="categoriaInventario"
+                                        class="font-weight-bold text-secondary">Calzado</span>
+                                </p>
+                            </div>
+                            <div class="mt-3 mt-md-0 text-center">
+                                <span class="badge badge-success p-2" style="font-size: 1rem;">Stock Total: <strong
+                                        id="stockTotal">14 unds</strong></span>
+                            </div>
+                        </div>
+
+                        <!-- Desglose de Disponibilidad -->
+                        <h5 class="font-weight-bold text-dark mb-3">Disponibilidad por Talla / Variante</h5>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle border">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Talla / Especificación</th>
+                                        <th>Estado</th>
+                                        <th class="text-right">Cantidad Disponible</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tablaDisponibilidad">
+                                    <tr>
+                                        <td><strong>Talla 36</strong></td>
+                                        <td><span class="text-success font-weight-bold">Disponible</span></td>
+                                        <td class="text-right font-weight-bold text-success">3 unidades</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Talla 38</strong></td>
+                                        <td><span class="text-success font-weight-bold">Disponible</span></td>
+                                        <td class="text-right font-weight-bold text-success">5 unidades</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Talla 40</strong></td>
+                                        <td><span class="text-warning font-weight-bold">Últimas unidades</span></td>
+                                        <td class="text-right font-weight-bold text-warning">2 unidades</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Talla 42</strong></td>
+                                        <td><span class="text-danger font-weight-bold">Agotado</span></td>
+                                        <td class="text-right font-weight-bold text-danger">0 unidades</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MODAL DE RESULTADOS DE BÚSQUEDA MANUAL -->
+    <div class="modal fade" id="modalResultadosBusqueda" tabindex="-1" role="dialog"
+        aria-labelledby="modalBusquedaLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title font-weight-bold" id="modalBusquedaLabel">
+                        🔍 Coincidencias encontradas
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body bg-light">
+                    <p class="text-muted small mb-3">Se encontraron varios productos con ese nombre. Seleccione el
+                        producto exacto que desea consultar:</p>
+
+                    <!-- Contenedor de Tarjetas de Resultados -->
+                    <div class="row" id="contenedorTarjetasResultados">
+                        <!-- Se genera dinámicamente con JS -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary font-weight-bold"
+                        data-dismiss="modal">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts de Bootstrap y Lógica Interactiva -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct"
+        crossorigin="anonymous"></script>
+
+    <script>
+        // 1. Inicialización de la Cámara Web
+        const video = document.getElementById('webcam');
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => { video.srcObject = stream; })
+                .catch(err => { console.log("La cámara no se pudo activar o no hay permiso: ", err); });
+        }
+
+        // 2. Base de datos simulada con múltiples variedades de productos
+        const baseInventario = [
+            {
+                id: 1,
+                nombre: "Zapatos Deportivos Negros",
+                cod: "77098765",
+                categoria: "Calzado",
+                stockTotal: "14 unds",
+                variantes: [
+                    { t: "Talla 36", estado: "Disponible", cant: "3 unidades", color: "text-success" },
+                    { t: "Talla 38", estado: "Disponible", cant: "5 unidades", color: "text-success" },
+                    { t: "Talla 40", estado: "Últimas unidades", cant: "2 unidades", color: "text-warning" },
+                    { t: "Talla 42", estado: "Agotado", cant: "0 unidades", color: "text-danger" }
+                ]
+            },
+            {
+                id: 2,
+                nombre: "Zapatos Formales de Cuero Café",
+                cod: "77098766",
+                categoria: "Calzado",
+                stockTotal: "8 unds",
+                variantes: [
+                    { t: "Talla 38", estado: "Disponible", cant: "2 unidades", color: "text-success" },
+                    { t: "Talla 40", estado: "Disponible", cant: "4 unidades", color: "text-success" },
+                    { t: "Talla 42", estado: "Últimas unidades", cant: "2 unidades", color: "text-warning" }
+                ]
+            },
+            {
+                id: 3,
+                nombre: "Zapatos Urbanos Blancos",
+                cod: "77098767",
+                categoria: "Calzado",
+                stockTotal: "20 unds",
+                variantes: [
+                    { t: "Talla 37", estado: "Disponible", cant: "10 unidades", color: "text-success" },
+                    { t: "Talla 39", estado: "Disponible", cant: "10 unidades", color: "text-success" }
+                ]
+            },
+            {
+                id: 4,
+                nombre: "Jean Clásico Azul",
+                cod: "77045612",
+                categoria: "Ropa",
+                stockTotal: "9 unds",
+                variantes: [
+                    { t: "Talla 28 (S)", estado: "Disponible", cant: "2 unidades", color: "text-success" },
+                    { t: "Talla 30 (M)", estado: "Disponible", cant: "4 unidades", color: "text-success" },
+                    { t: "Talla 32 (L)", estado: "Últimas unidades", cant: "3 unidades", color: "text-warning" }
+                ]
+            }
+        ];
+
+        // 3. Renderizar el producto seleccionado en la pantalla principal
+        function cargarProductoEnPantalla(p) {
+            $('#nombreInventario').text(p.nombre);
+            $('#codigoInventario').text(p.cod);
+            $('#categoriaInventario').text(p.categoria);
+            $('#stockTotal').text(p.stockTotal);
+
+            let htmlVariantes = '';
+            p.variantes.forEach(v => {
+                let badgeEstado = '';
+                if (v.estado === "Disponible") badgeEstado = '<span class="text-success font-weight-bold">Disponible</span>';
+                else if (v.estado === "Últimas unidades") badgeEstado = '<span class="text-warning font-weight-bold">Últimas unidades</span>';
+                else badgeEstado = '<span class="text-danger font-weight-bold">Agotado</span>';
+
+                htmlVariantes += `
+            <tr>
+              <td><strong>${v.t}</strong></td>
+              <td>${badgeEstado}</td>
+              <td class="text-right font-weight-bold ${v.color}">${v.cant}</td>
+            </tr>
+          `;
+            });
+            $('#tablaDisponibilidad').html(htmlVariantes);
+        }
+
+        // 4. Búsqueda manual: abre el modal con opciones visuales
+        $('#btnBuscarManual').click(function () {
+            const query = $('#inputBusquedaManual').val().trim().toLowerCase();
+
+            // Filtra en la base de datos por coincidencia parcial de texto
+            const resultados = baseInventario.filter(prod =>
+                prod.nombre.toLowerCase().includes(query) || prod.cod.includes(query)
+            );
+
+            if (resultados.length === 0) {
+                alert("No se encontraron productos coincidentes.");
+                return;
+            }
+
+            // Construir las tarjetas visuales dentro del modal
+            let htmlCards = '';
+            resultados.forEach(p => {
+                htmlCards += `
+            <div class="col-12 col-md-4 mb-3">
+              <div class="card h-100 shadow-sm border-0 text-center p-2">
+                <!-- Recuadro Placeholder para la Imagen del Producto -->
+                <div class="bg-secondary text-white rounded d-flex align-items-center justify-content-center mb-2" style="height: 110px;">
+                  <small class="font-weight-bold">[ Foto Producto ]</small>
+                </div>
+                <div class="card-body p-1 d-flex flex-column justify-content-between">
+                  <div>
+                    <h6 class="font-weight-bold text-dark m-0 mb-1">${p.nombre}</h6>
+                    <small class="text-muted d-block mb-2">COD: ${p.cod}</small>
+                  </div>
+                  <button class="btn btn-sm btn-warning font-weight-bold text-dark btn-seleccionar-producto btn-block" data-id="${p.id}">
+                    Seleccionar
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+            });
+
+            $('#contenedorTarjetasResultados').html(htmlCards);
+            $('#modalResultadosBusqueda').modal('show');
+        });
+
+        // 5. Al presionar "Seleccionar" en una tarjeta del modal
+        $(document).on('click', '.btn-seleccionar-producto', function () {
+            const prodId = $(this).data('id');
+            const productoEncontrado = baseInventario.find(p => p.id === prodId);
+
+            if (productoEncontrado) {
+                cargarProductoEnPantalla(productoEncontrado);
+                $('#modalResultadosBusqueda').modal('hide');
+                $('#inputBusquedaManual').val('');
+            }
+        });
+
+        // 6. Botón "Escanear siguiente producto" para la cámara
+        let indiceCamara = 0;
+        $('#btnConsultarInventario').click(function () {
+            indiceCamara = (indiceCamara + 1) % baseInventario.length;
+            cargarProductoEnPantalla(baseInventario[indiceCamara]);
+        });
+    </script>
+</body>
+
+</html>

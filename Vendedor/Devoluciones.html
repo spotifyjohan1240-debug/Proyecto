@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+        integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous" />
+
+    <title>Gestión de Devoluciones - POS</title>
+</head>
+
+<body style="background-color: #f4f5f7;">
+    <div class="container-fluid min-vh-100 p-3 p-md-4 d-flex flex-column">
+
+        <!-- Barra superior de navegación -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="h4 font-weight-bold text-dark m-0">Módulo de Devoluciones</h3>
+            <a href="PanelCentralVendedor.html" class="btn btn-outline-secondary font-weight-bold">
+                ← Volver al Panel
+            </a>
+        </div>
+
+        <!-- SECCIÓN 1: ESCANEAR PRODUCTO A DEVOLVER -->
+        <div id="seccionEscaneo" class="row flex-fill justify-content-center align-items-center">
+            <div class="col-12 col-lg-8">
+                <div class="card shadow-sm border-0 p-4 text-center bg-white rounded-lg">
+                    <h4 class="font-weight-bold text-dark mb-1">Escanear Producto a Devolver</h4>
+                    <p class="text-muted small mb-3">Ubique la prenda o artículo que el cliente devuelve frente a la
+                        cámara.</p>
+
+                    <!-- Visor de Cámara Ampliado -->
+                    <div class="embed-responsive embed-responsive-4by3 bg-dark rounded overflow-hidden shadow-inner mb-3 mx-auto"
+                        style="min-height: 380px;">
+                        <video id="webcamDevolucion" class="embed-responsive-item" autoplay playsinline muted
+                            style="object-fit: cover;"></video>
+                    </div>
+
+                    <!-- BOTÓN SIMULADOR DE PRUEBA -->
+                    <div class="mb-4">
+                        <button id="btnSimularDevolucion"
+                            class="btn btn-sm btn-outline-warning text-dark font-weight-bold">
+                            [Simular Lectura de Cámara]
+                        </button>
+                    </div>
+
+                    <!-- Formulario de detalles (Oculto inicialmente hasta la simulación) -->
+                    <div id="detallesDevolucion" class="border-top pt-3 text-left" style="display: none;">
+                        <div class="alert alert-info d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <strong id="nombreProducto">Camiseta Casual Azul</strong>
+                                <br>
+                                <small class="text-muted">Ref: <span id="codProducto">77012345</span>
+                            </div>
+                        </div>
+
+                        <!-- ALERTA DE ERROR SI NO HAY TALLA -->
+                        <div id="errorTalla" class="alert alert-danger font-weight-bold py-2 small mb-3"
+                            style="display: none;">
+                            ⚠️ Debe seleccionar una talla o especificación para continuar.
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label class="font-weight-bold text-dark">
+                                Talla / Especificación
+                            </label>
+                            <select id="tallaDevolucion" class="form-control form-control-lg">
+                                <option value="" selected disabled>-- Seleccione una opción --</option>
+                                <option value="S">Talla S</option>
+                                <option value="M">Talla M</option>
+                                <option value="L">Talla L</option>
+                                <option value="XL">Talla XL</option>
+                            </select>
+                        </div>
+
+                        <button id="btnCalcular" class="btn btn-primary btn-lg btn-block font-weight-bold">
+                            Calcular Devolución
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 2: RESUMEN Y LIQUIDACIÓN (Oculto por defecto) -->
+        <div id="seccionLiquidacion" class="row flex-fill justify-content-center align-items-center"
+            style="display: none;">
+            <div class="col-12 col-lg-8">
+                <div class="card shadow-sm border-0 p-4 text-center bg-white rounded-lg">
+                    <h4 class="font-weight-bold text-dark mb-4">Resumen y Liquidación de Devolución</h4>
+
+                    <!-- Tarjeta Producto Devuelto -->
+                    <div class="text-left mb-4">
+                        <div class="p-3 bg-light rounded border border-secondary">
+                            <span class="badge badge-secondary mb-2">Artículo Devuelto por el Cliente</span>
+                            <h5 id="resumenNombre" class="font-weight-bold text-dark mb-1">Camiseta Casual Azul</h5>
+                            <p class="text-muted small mb-2">Talla seleccionada: <strong id="resumenTalla"
+                                    class="text-dark">M</strong></p>
+                            <h4 class="font-weight-bold text-secondary mb-0">$45.000</h4>
+                        </div>
+                    </div>
+
+                    <!-- Balance / Monto a Devolver -->
+                    <div class="bg-white p-4 rounded border mb-4 shadow-sm text-center">
+                        <span class="text-muted font-weight-bold text-uppercase small d-block mb-1">Total a
+                            Reembolsar</span>
+                        <h1 class="display-4 font-weight-bold text-success mb-1">
+                            $45.000
+                        </h1>
+                        <p class="font-weight-bold text-dark m-0">
+                            Se debe entregar este valor al cliente.
+                        </p>
+                    </div>
+
+                    <!-- Botón Finalizar con Alerta -->
+                    <button id="btnFinalizarDevolucion"
+                        class="btn btn-success btn-lg btn-block font-weight-bold shadow-sm">
+                        Procesar Devolución y Finalizar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Scripts de jQuery (Versión Completa) y Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct"
+        crossorigin="anonymous"></script>
+
+    <script>
+        // 1. Activar Cámara
+        const webcam = document.getElementById('webcamDevolucion');
+
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => {
+                    if (webcam) webcam.srcObject = stream;
+                })
+                .catch(err => { console.log("Cámara no iniciada: ", err); });
+        }
+
+        // 2. Simular lectura del producto
+        $('#btnSimularDevolucion').click(function () {
+            $('#detallesDevolucion').slideDown(200);
+        });
+
+        // Ocultar alerta de error al seleccionar una talla
+        $('#tallaDevolucion').change(function () {
+            if ($(this).val()) {
+                $('#errorTalla').slideUp(100);
+            }
+        });
+
+        // 3. Validar y pasar a la liquidación
+        $('#btnCalcular').click(function () {
+            const tallaSeleccionada = $('#tallaDevolucion').val();
+
+            if (!tallaSeleccionada) {
+                // Si no hay talla seleccionada, mostrar error
+                $('#errorTalla').slideDown(150);
+                return;
+            }
+
+            $('#resumenTalla').text(tallaSeleccionada);
+
+            $('#seccionEscaneo').hide();
+            $('#seccionLiquidacion').fadeIn(200);
+        });
+
+        // 4. Finalizar Devolución con Alerta de Confirmación
+        $('#btnFinalizarDevolucion').click(function () {
+            alert('¡Devolución realizada con éxito!');
+            window.location.href = 'PanelCentralVendedor.html';
+        });
+    </script>
+</body>
+
+</html>

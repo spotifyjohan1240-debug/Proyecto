@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+        integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous" />
+
+    <title>Gestión de Cambios - POS</title>
+</head>
+
+<body style="background-color: #f4f5f7;">
+    <div class="container-fluid min-vh-100 p-3 p-md-4 d-flex flex-column">
+
+        <!-- Barra superior de navegación -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="h4 font-weight-bold text-dark m-0">Módulo de Cambios</h3>
+            <a href="PanelCentralVendedor.html" class="btn btn-outline-secondary font-weight-bold">
+                ← Volver al Panel
+            </a>
+        </div>
+
+        <!-- SECCIÓN 1: ESCANEAR PRODUCTO DEVUELTO -->
+        <div id="paso1" class="row flex-fill justify-content-center align-items-center">
+            <div class="col-12 col-lg-8">
+                <div class="card shadow-sm border-0 p-4 text-center bg-white rounded-lg">
+                    <h4 class="font-weight-bold text-dark mb-1">Escanear Producto a Devolver</h4>
+                    <p class="text-muted small mb-3">Ubique la prenda o artículo que el cliente trae de vuelta frente a
+                        la cámara.</p>
+
+                    <!-- Visor de Cámara Ampliado -->
+                    <div class="embed-responsive embed-responsive-4by3 bg-dark rounded overflow-hidden shadow-inner mb-3 mx-auto"
+                        style="min-height: 380px;">
+                        <video id="webcam1" class="embed-responsive-item" autoplay playsinline muted
+                            style="object-fit: cover;"></video>
+                    </div>
+
+                    <!-- BOTÓN SIMULADOR DE PRUEBA -->
+                    <div class="mb-4">
+                        <button id="btnSimularDevuelto"
+                            class="btn btn-sm btn-outline-warning text-dark font-weight-bold">
+                            [Simular Lectura de Cámara]
+                        </button>
+                    </div>
+
+                    <!-- Formulario de detalles (Oculto inicialmente hasta la simulación) -->
+                    <div id="detallesDevuelto" class="border-top pt-3 text-left" style="display: none;">
+                        <div class="alert alert-info d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <strong id="nombreDevuelto">Camiseta Casual Azul</strong>
+                                <br>
+                                <small class="text-muted">Ref: <span id="codDevuelto">77012345</span> | Precio original:
+                                    $45.000</small>
+                            </div>
+                            <span class="badge badge-secondary p-2">$45.000</span>
+                        </div>
+
+                        <!-- ALERTA DE ERROR SI NO HAY TALLA -->
+                        <div id="errorTallaDevuelto" class="alert alert-danger font-weight-bold py-2 small mb-3"
+                            style="display: none;">
+                            ⚠️ Debe seleccionar una talla o especificación para continuar.
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label class="font-weight-bold text-dark">
+                                Talla / Especificación
+                            </label>
+                            <select id="tallaDevuelto" class="form-control form-control-lg">
+                                <option value="" selected disabled>-- Seleccione una opción --</option>
+                                <option value="S">Talla S</option>
+                                <option value="M">Talla M</option>
+                                <option value="L">Talla L</option>
+                                <option value="XL">Talla XL</option>
+                            </select>
+                        </div>
+
+                        <button id="btnIrPaso2" class="btn btn-primary btn-lg btn-block font-weight-bold">
+                            Escanear Producto Nuevo
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 2: ESCANEAR PRODUCTO NUEVO (Oculto por defecto) -->
+        <div id="paso2" class="row flex-fill justify-content-center align-items-center" style="display: none;">
+            <div class="col-12 col-lg-8">
+                <div class="card shadow-sm border-0 p-4 text-center bg-white rounded-lg">
+                    <h4 class="font-weight-bold text-dark mb-1">Escanear Producto Nuevo</h4>
+                    <p class="text-muted small mb-3">Ubique la nueva prenda que el cliente desea llevarse.</p>
+
+                    <!-- Visor de Cámara Ampliado -->
+                    <div class="embed-responsive embed-responsive-4by3 bg-dark rounded overflow-hidden shadow-inner mb-3 mx-auto"
+                        style="min-height: 380px;">
+                        <video id="webcam2" class="embed-responsive-item" autoplay playsinline muted
+                            style="object-fit: cover;"></video>
+                    </div>
+
+                    <!-- BOTÓN SIMULADOR DE PRUEBA -->
+                    <div class="mb-4">
+                        <button id="btnSimularNuevo" class="btn btn-sm btn-outline-warning text-dark font-weight-bold">
+                            [Simular Lectura de Cámara]
+                        </button>
+                    </div>
+
+                    <!-- Formulario de detalles (Oculto inicialmente) -->
+                    <div id="detallesNuevo" class="border-top pt-3 text-left" style="display: none;">
+                        <div class="alert alert-success d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <strong id="nombreNuevo">Jean Clásico Azul</strong>
+                                <br>
+                                <small class="text-muted">Ref: <span id="codNuevo">77045612</span> | Precio actual:
+                                    $85.000</small>
+                            </div>
+                            <span class="badge badge-success p-2">$85.000</span>
+                        </div>
+
+                        <!-- ALERTA DE ERROR SI NO HAY TALLA NUEVA -->
+                        <div id="errorTallaNuevo" class="alert alert-danger font-weight-bold py-2 small mb-3"
+                            style="display: none;">
+                            ⚠️ Debe seleccionar una talla o especificación para continuar.
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label class="font-weight-bold text-dark">
+                                Talla / Especificación
+                            </label>
+                            <select id="tallaNuevo" class="form-control form-control-lg">
+                                <option value="" selected disabled>-- Seleccione una opción --</option>
+                                <option value="28">Talla 28 (S)</option>
+                                <option value="30">Talla 30 (M)</option>
+                                <option value="32">Talla 32 (L)</option>
+                                <option value="34">Talla 34 (XL)</option>
+                            </select>
+                        </div>
+
+                        <button id="btnIrPaso3" class="btn btn-success btn-lg btn-block font-weight-bold">
+                            Calcular Liquidación
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 3: RESUMEN Y LIQUIDACIÓN (Oculto por defecto) -->
+        <div id="paso3" class="row flex-fill justify-content-center align-items-center" style="display: none;">
+            <div class="col-12 col-lg-8">
+                <div class="card shadow-sm border-0 p-4 text-center bg-white rounded-lg">
+                    <h4 class="font-weight-bold text-dark mb-4">Resumen y Liquidación del Cambio</h4>
+
+                    <div class="row text-left mb-4">
+                        <!-- Tarjeta Producto Devuelto -->
+                        <div class="col-12 col-md-6 mb-3 mb-md-0">
+                            <div class="p-3 bg-light rounded border border-secondary">
+                                <span class="badge badge-secondary mb-2">Producto Devuelto</span>
+                                <h5 id="resumenNombreDevuelto" class="font-weight-bold text-dark mb-1">Camiseta Casual
+                                    Azul</h5>
+                                <p class="text-muted small mb-2">Talla: <strong id="resumenTallaDevuelto"
+                                        class="text-dark">M</strong></p>
+                                <h4 class="font-weight-bold text-secondary mb-0">$45.000</h4>
+                            </div>
+                        </div>
+
+                        <!-- Tarjeta Producto Nuevo -->
+                        <div class="col-12 col-md-6">
+                            <div class="p-3 bg-light rounded border border-success">
+                                <span class="badge badge-success mb-2">Producto Nuevo</span>
+                                <h5 id="resumenNombreNuevo" class="font-weight-bold text-dark mb-1">Jean Clásico Azul
+                                </h5>
+                                <p class="text-muted small mb-2">Talla: <strong id="resumenTallaNuevo"
+                                        class="text-dark">30</strong></p>
+                                <h4 class="font-weight-bold text-success mb-0">$85.000</h4>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Balance / Diferencia Monetaria -->
+                    <div class="bg-white p-4 rounded border mb-4 shadow-sm text-center">
+                        <span class="text-muted font-weight-bold text-uppercase small d-block mb-1">Balance de
+                            Operación</span>
+                        <h1 id="montoDiferencia" class="display-4 font-weight-bold text-danger mb-1">
+                            +$40.000
+                        </h1>
+                        <p id="mensajeDiferencia" class="font-weight-bold text-dark m-0">
+                            El cliente debe pagar una diferencia en caja.
+                        </p>
+                    </div>
+
+                    <!-- Botón Finalizar con Alerta de Confirmación -->
+                    <button id="btnFinalizarCambio" class="btn btn-primary btn-lg btn-block font-weight-bold shadow-sm">
+                        Procesar Cambio y Finalizar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Scripts de jQuery (Versión Completa) y Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct"
+        crossorigin="anonymous"></script>
+
+    <script>
+        // 1. Activar Cámara
+        const webcam1 = document.getElementById('webcam1');
+        const webcam2 = document.getElementById('webcam2');
+
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => {
+                    if (webcam1) webcam1.srcObject = stream;
+                    if (webcam2) webcam2.srcObject = stream;
+                })
+                .catch(err => { console.log("Cámara no iniciada: ", err); });
+        }
+
+        // Variables de control visual
+        let precioDevuelto = 45000;
+        let precioNuevo = 85000;
+
+        // 2. Simular lectura del primer producto
+        $('#btnSimularDevuelto').click(function () {
+            $('#detallesDevuelto').slideDown(200);
+        });
+
+        // Ocultar alerta de error al seleccionar una talla en el primer producto
+        $('#tallaDevuelto').change(function () {
+            if ($(this).val()) {
+                $('#errorTallaDevuelto').slideUp(100);
+            }
+        });
+
+        // 3. Validar y pasar a escanear producto nuevo
+        $('#btnIrPaso2').click(function () {
+            const talla1 = $('#tallaDevuelto').val();
+
+            if (!talla1) {
+                // Si no hay talla seleccionada, mostrar error
+                $('#errorTallaDevuelto').slideDown(150);
+                return;
+            }
+
+            $('#paso1').hide();
+            $('#paso2').fadeIn(200);
+        });
+
+        // Simular lectura del segundo producto
+        $('#btnSimularNuevo').click(function () {
+            $('#detallesNuevo').slideDown(200);
+        });
+
+        // Ocultar alerta de error al seleccionar una talla en el segundo producto
+        $('#tallaNuevo').change(function () {
+            if ($(this).val()) {
+                $('#errorTallaNuevo').slideUp(100);
+            }
+        });
+
+        // 4. Validar y pasar a liquidación
+        $('#btnIrPaso3').click(function () {
+            const talla1 = $('#tallaDevuelto').val();
+            const talla2 = $('#tallaNuevo').val();
+
+            if (!talla2) {
+                // Si no hay talla seleccionada para el producto nuevo, mostrar error
+                $('#errorTallaNuevo').slideDown(150);
+                return;
+            }
+
+            $('#resumenTallaDevuelto').text(talla1);
+            $('#resumenTallaNuevo').text(talla2);
+
+            // Calcular Diferencia
+            const dif = precioNuevo - precioDevuelto;
+
+            if (dif > 0) {
+                $('#montoDiferencia').removeClass('text-success text-secondary').addClass('text-danger')
+                    .text('+$' + dif.toLocaleString('es-CO'));
+                $('#mensajeDiferencia').text('El cliente debe pagar una diferencia en caja.');
+            } else if (dif < 0) {
+                $('#montoDiferencia').removeClass('text-danger text-secondary').addClass('text-success')
+                    .text('-$' + Math.abs(dif).toLocaleString('es-CO'));
+                $('#mensajeDiferencia').text('Se debe devolver este saldo al cliente.');
+            } else {
+                $('#montoDiferencia').removeClass('text-danger text-success').addClass('text-secondary')
+                    .text('$0');
+                $('#mensajeDiferencia').text('Cambio mano a mano. No hay diferencia de dinero.');
+            }
+
+            $('#paso2').hide();
+            $('#paso3').fadeIn(200);
+        });
+
+        // 5. Finalizar Cambio con Alerta de Confirmación
+        $('#btnFinalizarCambio').click(function () {
+            alert('¡Cambio procesado con éxito!');
+            window.location.href = 'PanelCentralVendedor.html';
+        });
+    </script>
+</body>
+
+</html>
