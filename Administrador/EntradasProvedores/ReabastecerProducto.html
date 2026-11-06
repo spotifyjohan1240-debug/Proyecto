@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+        integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous" />
+
+    <title>Ingresar Producto Existente (Reabastecimiento)</title>
+</head>
+
+<body style="background-color: #f4f5f7;">
+    <div class="container-fluid min-vh-100 p-3 p-md-4 d-flex flex-column">
+
+        <!-- Barra superior de navegación -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h3 class="h4 font-weight-bold text-dark m-0">Reabastecer Producto Existente</h3>
+                <small class="text-muted">Añade stock con tallas filtradas por categoría, actualiza costos y
+                    proveedor.</small>
+            </div>
+            <a href="EntradasProveedores.html" class="btn btn-outline-secondary font-weight-bold">
+                ← Volver al Módulo
+            </a>
+        </div>
+
+        <!-- Alerta de éxito superior -->
+        <div id="alertaExito" class="alert alert-success font-weight-bold shadow-sm py-2 mb-3" style="display: none;">
+            ✓ ¡Reabastecimiento registrado con éxito! El inventario ha sido actualizado.
+        </div>
+
+        <!-- Contenido Principal: Pantalla Dividida -->
+        <div class="row flex-fill">
+
+            <!-- PANEL IZQUIERDO: Cámara y Buscador Manual -->
+            <div class="col-12 col-lg-4 mb-4 mb-lg-0 d-flex flex-column">
+                <div class="card shadow-sm border-0 flex-fill d-flex flex-column justify-content-between p-3 bg-white">
+                    <div>
+                        <h5 class="card-title font-weight-bold text-center text-muted mb-3">
+                            Buscar Producto a Reabastecer
+                        </h5>
+
+                        <!-- Visor de la Cámara (Preparado para IA futura) -->
+                        <div
+                            class="embed-responsive embed-responsive-4by3 bg-dark rounded overflow-hidden shadow-inner mb-3">
+                            <video id="webcam" class="embed-responsive-item" autoplay playsinline muted
+                                style="object-fit: cover;"></video>
+                        </div>
+
+                        <!-- Buscador Manual -->
+                        <div class="input-group mb-2">
+                            <input type="text" id="inputBusquedaManual" class="form-control"
+                                placeholder="Escribe nombre o código...">
+                            <div class="input-group-append">
+                                <button class="btn btn-warning font-weight-bold text-dark" type="button"
+                                    id="btnBuscarManual">Buscar</button>
+                            </div>
+                        </div>
+                        <small class="text-muted text-center d-block">
+                            Escanee el producto o búsquelo por nombre para seleccionarlo.
+                        </small>
+                    </div>
+
+                    <div class="mt-3">
+                        <button id="btnLimpiarSeleccion" class="btn btn-outline-secondary btn-block font-weight-bold">
+                            Limpiar / Seleccionar Otro
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANEL DERECHO: Formulario de Reabastecimiento -->
+            <div class="col-12 col-lg-8 d-flex flex-column">
+                <div class="card shadow-sm border-0 flex-fill p-4 bg-white">
+
+                    <!-- Estado inicial si no hay producto seleccionado -->
+                    <div id="mensajeSinSeleccion" class="text-center py-5 my-auto">
+                        <div class="display-3 mb-3 text-muted">📦</div>
+                        <h4 class="font-weight-bold text-dark">Ningún producto seleccionado</h4>
+                        <p class="text-muted">Utiliza el buscador o la cámara de la izquierda para ubicar el artículo
+                            que deseas reabastecer.</p>
+                    </div>
+
+                    <!-- Formulario activo al seleccionar producto -->
+                    <div id="formularioReabastecimiento" style="display: none;">
+                        <h5 class="font-weight-bold text-dark border-bottom pb-2 mb-3">
+                            📋 Datos del Reabastecimiento: <span id="lblNombreProd" class="text-primary"></span>
+                        </h5>
+
+                        <div class="row">
+                            <!-- Código (No editable) -->
+                            <div class="col-12 col-md-4 form-group">
+                                <label class="font-weight-bold text-muted small">Código</label>
+                                <input type="text" id="formCodigo" class="form-control bg-light" readonly>
+                            </div>
+                            <!-- Categoría (Fija, no editable) -->
+                            <div class="col-12 col-md-4 form-group">
+                                <label class="font-weight-bold text-muted small">Categoría (Fija)</label>
+                                <input type="text" id="formCategoria" class="form-control bg-light" readonly>
+                            </div>
+                            <!-- Género / Línea (Desplegable editable) -->
+                            <div class="col-12 col-md-4 form-group">
+                                <label class="font-weight-bold text-dark small">Género / Línea *</label>
+                                <select id="formGenero" class="form-control">
+                                    <option value="Niño">Niño</option>
+                                    <option value="Niña">Niña</option>
+                                    <option value="Hombre">Hombre</option>
+                                    <option value="Mujer">Mujer</option>
+                                    <option value="Unisex">Unisex</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Selector de Proveedor con Buscador Predictivo -->
+                        <div class="form-group">
+                            <label class="font-weight-bold text-dark">Proveedor que surte este lote *</label>
+                            <input type="text" id="inputBuscarProveedor" class="form-control" list="listaProveedores"
+                                placeholder="Escribe para buscar o seleccionar proveedor..." autocomplete="off">
+                            <datalist id="listaProveedores">
+                                <!-- Se llena dinámicamente con JS -->
+                            </datalist>
+                        </div>
+
+                        <!-- Actualización de Precios con Formato de Miles (Sin ejemplos numéricos) -->
+                        <div class="row bg-light p-3 rounded border mb-3">
+                            <div class="col-12 col-md-6 form-group mb-md-0">
+                                <label class="font-weight-bold text-dark small">Costo Unitario Anterior:</label>
+                                <span id="lblCostoAnterior"
+                                    class="d-block font-weight-bold text-secondary mb-2">$0</span>
+                                <label class="font-weight-bold text-dark small">Nuevo Costo Unitario ($) *</label>
+                                <input type="text" id="inputNuevoCosto"
+                                    class="form-control font-weight-bold text-success" autocomplete="off">
+                            </div>
+                            <div class="col-12 col-md-6 form-group mb-0">
+                                <label class="font-weight-bold text-dark small">Precio Venta Anterior:</label>
+                                <span id="lblPrecioAnterior"
+                                    class="d-block font-weight-bold text-secondary mb-2">$0</span>
+                                <label class="font-weight-bold text-dark small">Nuevo Precio de Venta ($) *</label>
+                                <input type="text" id="inputNuevoPrecio"
+                                    class="form-control font-weight-bold text-primary" autocomplete="off">
+                            </div>
+                        </div>
+
+                        <!-- Ingreso de Stock por Tallas con Menú Desplegable Dinámico -->
+                        <div class="form-group">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="font-weight-bold text-dark m-0">Tallas y Cantidades que Entran *</label>
+                                <button type="button" id="btnAgregarFilaTalla"
+                                    class="btn btn-sm btn-outline-primary font-weight-bold">+ Añadir Talla /
+                                    Variante</button>
+                            </div>
+                            <small class="text-muted d-block mb-2">Selecciona la talla del menú desplegable e ingresa
+                                las unidades correspondientes.</small>
+                            <div class="table-responsive">
+                                <table class="table table-bordered align-middle mb-0">
+                                    <thead class="thead-light">
+                                        <tr>
+                                            <th>Talla / Variante</th>
+                                            <th class="text-center" style="width: 180px;">Unidades que Entran</th>
+                                            <th class="text-center" style="width: 80px;">Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tablaVariantesLibres">
+                                        <tr>
+                                            <td colspan="3" class="text-center text-muted py-3 mensaje-vacio">No hay
+                                                tallas agregadas. Usa el botón superior para añadir.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Botón para disparar la confirmación -->
+                        <button type="button" id="btnIniciarReabastecimiento"
+                            class="btn btn-success btn-lg btn-block font-weight-bold shadow-sm mt-4">
+                            Guardar y Actualizar Inventario
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MODAL DE RESULTADOS DE BÚSQUEDA MANUAL -->
+    <div class="modal fade" id="modalResultadosBusqueda" tabindex="-1" role="dialog"
+        aria-labelledby="modalBusquedaLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title font-weight-bold" id="modalBusquedaLabel">
+                        🔍 Productos encontrados en Inventario
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body bg-light">
+                    <p class="text-muted small mb-3">Selecciona el producto exacto que deseas reabastecer:</p>
+                    <div class="row" id="contenedorTarjetasResultados">
+                        <!-- Se genera dinámicamente con JS -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary font-weight-bold"
+                        data-dismiss="modal">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE CONFIRMACIÓN -->
+    <div class="modal fade" id="modalConfirmacion" tabindex="-1" role="dialog" aria-labelledby="modalConfLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title font-weight-bold" id="modalConfLabel">
+                        ⚠️ Confirmar Reabastecimiento
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted">Por favor, verifica los cambios que se aplicarán al inventario:</p>
+                    <ul class="list-group mb-3">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Producto:</span>
+                            <strong id="confNombre"></strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Categoría / Género:</span>
+                            <strong id="confCatGen" class="text-secondary"></strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Nuevo Costo Unitario:</span>
+                            <strong id="confCosto" class="text-success"></strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Nuevo Precio de Venta:</span>
+                            <strong id="confPrecio" class="text-primary"></strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Total de Unidades Nuevas que Entran:</span>
+                            <strong id="confUnidadesEntran" class="text-dark"></strong>
+                        </li>
+                    </ul>
+                    <p class="font-weight-bold text-dark text-center mb-0">¿Estás seguro de registrar esta entrada?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary font-weight-bold"
+                        data-dismiss="modal">Cancelar</button>
+                    <button type="button" id="btnAceptarGuardarDefinitivo"
+                        class="btn btn-success font-weight-bold px-4">Aceptar y Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts de jQuery y Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct"
+        crossorigin="anonymous"></script>
+
+    <script>
+        // Inicialización de la Cámara Web
+        const video = document.getElementById('webcam');
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => { video.srcObject = stream; })
+                .catch(err => { console.log("Cámara no disponible: ", err); });
+        }
+
+        let productoSeleccionado = null;
+
+        $(document).ready(function () {
+            cargarProveedoresDatalist();
+        });
+
+        function obtenerInventario() {
+            let inv = localStorage.getItem('inventario_pos');
+            return inv ? JSON.parse(inv) : [];
+        }
+
+        function guardarInventario(inv) {
+            localStorage.setItem('inventario_pos', JSON.stringify(inv));
+        }
+
+        function cargarProveedoresDatalist() {
+            let provs = localStorage.getItem('proveedores_pos');
+            let listaProvs = provs ? JSON.parse(provs) : [];
+            const $datalist = $('#listaProveedores');
+            $datalist.empty();
+
+            listaProvs.forEach(p => {
+                $datalist.append(`<option value="${p.nombre} (${p.lugar || 'N/A'})">`);
+            });
+        }
+
+        function generarOpcionesTallas(categoria) {
+            let html = '<option value="" selected disabled>-- Seleccionar Talla --</option>';
+
+            if (categoria === 'Ropa') {
+                html += `
+                    <optgroup label="Bebés">
+                        <option value="0-3 Meses">0-3 Meses</option>
+                        <option value="3-6 Meses">3-6 Meses</option>
+                        <option value="6-9 Meses">6-9 Meses</option>
+                        <option value="9-12 Meses">9-12 Meses</option>
+                        <option value="12-18 Meses">12-18 Meses</option>
+                        <option value="18-24 Meses">18-24 Meses</option>
+                    </optgroup>
+                    <optgroup label="Infantil">
+                        <option value="Talla 0">Talla 0</option>
+                        <option value="Talla 2">Talla 2</option>
+                        <option value="Talla 4">Talla 4</option>
+                        <option value="Talla 6">Talla 6</option>
+                        <option value="Talla 8">Talla 8</option>
+                        <option value="Talla 10">Talla 10</option>
+                        <option value="Talla 12">Talla 12</option>
+                        <option value="Talla 14">Talla 14</option>
+                        <option value="Talla 16">Talla 16</option>
+                    </optgroup>
+                    <optgroup label="Adultos">
+                        <option value="XS">XS</option>
+                        <option value="S">S</option>
+                        <option value="M">M</option>
+                        <option value="L">L</option>
+                        <option value="XL">XL</option>
+                        <option value="2XL">2XL</option>
+                        <option value="3XL">3XL</option>
+                        <option value="4XL">4XL</option>
+                        <option value="5XL">5XL</option>
+                    </optgroup>
+                `;
+            } else if (categoria === 'Calzado') {
+                html += `<optgroup label="Tallas de Calzado">`;
+                for (let i = 15; i <= 50; i++) {
+                    html += `<option value="Talla ${i}">Talla ${i}</option>`;
+                }
+                html += `</optgroup>`;
+            } else {
+                html += `<option value="Única">Única</option>`;
+            }
+            return html;
+        }
+
+        function seleccionarProductoParaReabastecer(p) {
+            productoSeleccionado = p;
+
+            $('#mensajeSinSeleccion').hide();
+            $('#formularioReabastecimiento').fadeIn(200);
+
+            $('#lblNombreProd').text(p.nombre);
+            $('#formCodigo').val('#' + p.codigo);
+            $('#formCategoria').val(p.categoria || 'Ropa');
+            $('#formGenero').val(p.genero || 'Unisex');
+
+            if (p.proveedor && p.proveedor.nombre) {
+                $('#inputBuscarProveedor').val(p.proveedor.nombre);
+            } else {
+                $('#inputBuscarProveedor').val('');
+            }
+
+            $('#lblCostoAnterior').text('$' + (p.costo || 0).toLocaleString('es-CO'));
+            $('#lblPrecioAnterior').text('$' + (p.precio || 0).toLocaleString('es-CO'));
+
+            $('#inputNuevoCosto').val(p.costo ? p.costo.toLocaleString('es-CO') : '');
+            $('#inputNuevoPrecio').val(p.precio ? p.precio.toLocaleString('es-CO') : '');
+
+            $('#tablaVariantesLibres').html(`
+                <tr>
+                    <td colspan="3" class="text-center text-muted py-3 mensaje-vacio">No hay tallas agregadas. Usa el botón superior para añadir.</td>
+                </tr>
+            `);
+        }
+
+        $(document).ready(function () {
+            $(document).on('input', '#inputNuevoCosto, #inputNuevoPrecio', function () {
+                let valorLimpio = $(this).val().replace(/\D/g, '');
+                if (valorLimpio !== '') {
+                    let valorFormateado = parseInt(valorLimpio, 10).toLocaleString('es-CO');
+                    $(this).val(valorFormateado);
+                } else {
+                    $(this).val('');
+                }
+            });
+
+            $('#btnAgregarFilaTalla').click(function () {
+                if (!productoSeleccionado) return;
+
+                if ($('.mensaje-vacio').length > 0) {
+                    $('#tablaVariantesLibres').empty();
+                }
+
+                const opcionesTallasHTML = generarOpcionesTallas(productoSeleccionado.categoria);
+
+                const nuevaFila = `
+                    <tr>
+                        <td>
+                            <select class="form-control font-weight-bold select-nombre-talla">
+                                ${opcionesTallasHTML}
+                            </select>
+                        </td>
+                        <td class="text-center">
+                            <input type="number" min="1" value="1" class="form-control text-center input-cantidad-talla font-weight-bold">
+                        </td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar-fila">X</button>
+                        </td>
+                    </tr>
+                `;
+                $('#tablaVariantesLibres').append(nuevaFila);
+            });
+
+            $(document).on('click', '.btn-eliminar-fila', function () {
+                $(this).closest('tr').remove();
+                if ($('#tablaVariantesLibres tr').length === 0) {
+                    $('#tablaVariantesLibres').html(`
+                        <tr>
+                            <td colspan="3" class="text-center text-muted py-3 mensaje-vacio">No hay tallas agregadas. Usa el botón superior para añadir.</td>
+                        </tr>
+                    `);
+                }
+            });
+
+            $('#btnBuscarManual').click(function () {
+                const query = $('#inputBusquedaManual').val().trim().toLowerCase();
+                const inventario = obtenerInventario();
+
+                const resultados = inventario.filter(prod =>
+                    prod.nombre.toLowerCase().includes(query) || prod.codigo.toString().includes(query)
+                );
+
+                if (resultados.length === 0) {
+                    alert("No se encontraron productos coincidentes en el inventario.");
+                    return;
+                }
+
+                let htmlCards = '';
+                resultados.forEach(p => {
+                    let stockTot = 0;
+                    if (p.variantes) p.variantes.forEach(v => stockTot += parseInt(v.stock) || 0);
+                    const img = p.imagen || "https://via.placeholder.com/150?text=Sin+Foto";
+
+                    htmlCards += `
+                        <div class="col-12 col-md-4 mb-3">
+                            <div class="card h-100 shadow-sm border-0 text-center p-2">
+                                <div class="rounded overflow-hidden mb-2 d-flex align-items-center justify-content-center bg-light border" style="height: 100px;">
+                                    <img src="${img}" alt="Producto" style="max-height: 100%; max-width: 100%; object-fit: cover;">
+                                </div>
+                                <div class="card-body p-1 d-flex flex-column justify-content-between">
+                                    <div>
+                                        <h6 class="font-weight-bold text-dark m-0 mb-1">${p.nombre}</h6>
+                                        <small class="text-muted d-block mb-1">COD: #${p.codigo} | Stock: ${stockTot}</small>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-warning font-weight-bold text-dark btn-sel-prod btn-block" data-codigo="${p.codigo}">
+                                        Seleccionar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                $('#contenedorTarjetasResultados').html(htmlCards);
+                $('#modalResultadosBusqueda').modal('show');
+            });
+
+            $(document).on('click', '.btn-sel-prod', function () {
+                const codigo = $(this).data('codigo');
+                const inventario = obtenerInventario();
+                const producto = inventario.find(p => parseInt(p.codigo) === parseInt(codigo));
+
+                if (producto) {
+                    seleccionarProductoParaReabastecer(producto);
+                    $('#modalResultadosBusqueda').modal('hide');
+                    $('#inputBusquedaManual').val('');
+                }
+            });
+
+            $('#btnLimpiarSeleccion').click(function () {
+                productoSeleccionado = null;
+                $('#formularioReabastecimiento').hide();
+                $('#mensajeSinSeleccion').fadeIn(200);
+            });
+
+            $('#btnIniciarReabastecimiento').click(function () {
+                if (!productoSeleccionado) return;
+
+                const costoStr = $('#inputNuevoCosto').val().replace(/\./g, '');
+                const precioStr = $('#inputNuevoPrecio').val().replace(/\./g, '');
+                const proveedorTexto = $('#inputBuscarProveedor').val().trim();
+
+                if (!costoStr || !precioStr || !proveedorTexto) {
+                    alert("⚠️ Por favor ingrese el nuevo costo, el nuevo precio de venta y seleccione el proveedor.");
+                    return;
+                }
+
+                if ($('.mensaje-vacio').length > 0 || $('.select-nombre-talla').length === 0) {
+                    alert("⚠️ Debe añadir al menos una talla o variante que haya llegado en este lote.");
+                    return;
+                }
+
+                let totalEntran = 0;
+                let errorTallaSinSeleccionar = false;
+
+                $('.input-cantidad-talla').each(function () {
+                    totalEntran += parseInt($(this).val()) || 0;
+                });
+
+                $('.select-nombre-talla').each(function () {
+                    if (!$(this).val()) {
+                        errorTallaSinSeleccionar = true;
+                    }
+                });
+
+                if (errorTallaSinSeleccionar) {
+                    alert("⚠️ Hay filas de tallas sin seleccionar en el menú desplegable. Por favor elígelas o elimínalas.");
+                    return;
+                }
+
+                if (totalEntran <= 0) {
+                    alert("⚠️ Debe ingresar al menos una unidad en total.");
+                    return;
+                }
+
+                $('#confNombre').text(productoSeleccionado.nombre);
+                $('#confCatGen').text($('#formCategoria').val() + ' / ' + $('#formGenero').val());
+                $('#confCosto').text('$' + parseInt(costoStr).toLocaleString('es-CO'));
+                $('#confPrecio').text('$' + parseInt(precioStr).toLocaleString('es-CO'));
+                $('#confUnidadesEntran').text(totalEntran + ' unidades');
+
+                $('#modalConfirmacion').modal('show');
+            });
+
+            $('#btnAceptarGuardarDefinitivo').click(function () {
+                const nuevoCosto = parseFloat($('#inputNuevoCosto').val().replace(/\./g, ''));
+                const nuevoPrecio = parseFloat($('#inputNuevoPrecio').val().replace(/\./g, ''));
+                const nuevoGenero = $('#formGenero').val();
+                const proveedorTexto = $('#inputBuscarProveedor').val().trim();
+
+                let proveedorNombreReal = proveedorTexto.split(' (')[0];
+                let provs = JSON.parse(localStorage.getItem('proveedores_pos') || '[]');
+                let provObj = provs.find(p => p.nombre.toLowerCase() === proveedorNombreReal.toLowerCase());
+                let proveedorData = provObj ? { nombre: provObj.nombre, contacto: "Tel: " + provObj.telefono } : { nombre: proveedorNombreReal, contacto: "Tel: N/A" };
+
+                let inventario = obtenerInventario();
+                let index = inventario.findIndex(p => parseInt(p.codigo) === parseInt(productoSeleccionado.codigo));
+
+                if (index !== -1) {
+                    inventario[index].genero = nuevoGenero;
+                    inventario[index].costo = nuevoCosto;
+                    inventario[index].precio = nuevoPrecio;
+                    inventario[index].proveedor = proveedorData;
+                    // Mantiene la imagen original intacta
+
+                    let variantesActualizadas = JSON.parse(JSON.stringify(inventario[index].variantes || []));
+
+                    $('#tablaVariantesLibres tr').each(function () {
+                        const nombreTalla = $(this).find('.select-nombre-talla').val();
+                        const cantEntra = parseInt($(this).find('.input-cantidad-talla').val()) || 0;
+
+                        if (nombreTalla && cantEntra > 0) {
+                            let varianteExistente = variantesActualizadas.find(v => v.talla.toLowerCase() === nombreTalla.toLowerCase());
+                            if (varianteExistente) {
+                                varianteExistente.stock = (parseInt(varianteExistente.stock) || 0) + cantEntra;
+                            } else {
+                                variantesActualizadas.push({
+                                    talla: nombreTalla,
+                                    stock: cantEntra
+                                });
+                            }
+                        }
+                    });
+
+                    inventario[index].variantes = variantesActualizadas;
+
+                    guardarInventario(inventario);
+
+                    $('#modalConfirmacion').modal('hide');
+                    $('#formularioReabastecimiento').hide();
+                    $('#mensajeSinSeleccion').fadeIn(200);
+
+                    $('#alertaExito').fadeIn(200).delay(4000).fadeOut(300);
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

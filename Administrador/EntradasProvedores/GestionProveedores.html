@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+        integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous" />
+
+    <title>Directorio de Proveedores</title>
+</head>
+
+<body style="background-color: #f4f5f7;">
+    <div class="container-fluid min-vh-100 p-3 p-md-4 d-flex flex-column">
+
+        <!-- Barra superior de navegación -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h3 class="h4 font-weight-bold text-dark m-0">Directorio de Proveedores</h3>
+                <small class="text-muted">Gestión de contactos, lugares de origen y clasificación por
+                    categorías.</small>
+            </div>
+            <a href="EntradasProveedores.html" class="btn btn-outline-secondary font-weight-bold">
+                ← Volver al Módulo
+            </a>
+        </div>
+
+        <!-- BARRA DE ACCIONES: BUSCADOR Y BOTÓN NUEVO PROVEEDOR -->
+        <div class="row mb-3">
+            <div class="col-12 col-md-8 mb-2 mb-md-0">
+                <div class="input-group shadow-sm">
+                    <div class="input-group-prepend">
+                        <span
+                            class="input-group-text bg-white border-right-0 px-3 d-flex align-items-center text-muted">🔍</span>
+                    </div>
+                    <input type="text" id="inputBuscadorProveedores" class="form-control border-left-0"
+                        placeholder="Buscar por nombre, lugar, teléfono o categoría...">
+                </div>
+            </div>
+            <div class="col-12 col-md-4 text-md-right">
+                <button type="button" class="btn btn-primary font-weight-bold shadow-sm btn-block" data-toggle="modal"
+                    data-target="#modalNuevoProveedor">
+                    + Registrar Nuevo Proveedor
+                </button>
+            </div>
+        </div>
+
+        <!-- TABLA MAESTRA DE PROVEEDORES -->
+        <div class="card shadow-sm border-0 flex-fill mb-3 bg-white">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="thead-light text-center">
+                            <tr>
+                                <th style="width: 70px;" class="align-middle">Código</th>
+                                <th class="align-middle text-left">Nombre del Proveedor</th>
+                                <th class="align-middle text-left">Lugar / Origen</th>
+                                <th class="align-middle text-left">Teléfono y Correo</th>
+                                <th class="align-middle text-left">Categorías que Surte</th>
+                                <th style="width: 110px;" class="align-middle">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaProveedoresCuerpo">
+                            <!-- Se llena dinámicamente con JavaScript desde localStorage -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TARJETA TOTALIZADORA INFERIOR -->
+        <div class="card shadow-sm border-0 bg-white p-3">
+            <div class="row align-items-center text-center text-md-left">
+                <div class="col-12">
+                    <span class="text-muted small text-uppercase font-weight-bold d-block">Proveedores
+                        Registrados</span>
+                    <h4 id="lblTotalProveedores" class="font-weight-bold text-dark m-0">0 proveedores</h4>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MODAL PARA REGISTRAR NUEVO PROVEEDOR -->
+    <div class="modal fade" id="modalNuevoProveedor" tabindex="-1" role="dialog" aria-labelledby="modalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title font-weight-bold text-dark" id="modalLabel">
+                        📇 Registrar Nuevo Proveedor
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="formNuevoProveedor">
+                        <div class="form-group">
+                            <label class="font-weight-bold text-dark">Nombre del Proveedor / Empresa *</label>
+                            <input type="text" id="nuevoNombreProv" class="form-control"
+                                placeholder="Ej: Textiles del Norte S.A.S." required>
+                        </div>
+                        <div class="form-group">
+                            <label class="font-weight-bold text-dark">Lugar / Ciudad de Origen *</label>
+                            <input type="text" id="nuevoLugarProv" class="form-control"
+                                placeholder="Ej: Medellín, Antioquia" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-12 col-md-6 form-group">
+                                <label class="font-weight-bold text-dark">Teléfono de Contacto *</label>
+                                <input type="text" id="nuevoTelefonoProv" class="form-control"
+                                    placeholder="Ej: 3001234567" required>
+                            </div>
+                            <div class="col-12 col-md-6 form-group">
+                                <label class="font-weight-bold text-dark">Correo Electrónico (Opcional)</label>
+                                <input type="email" id="nuevoCorreoProv" class="form-control"
+                                    placeholder="Ej: ventas@textiles.com">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="font-weight-bold text-dark">Categorías que Surte *</label>
+                            <small class="text-muted d-block mb-2">Selecciona las líneas de productos que maneja este
+                                proveedor:</small>
+                            <div class="d-flex flex-wrap gap-2" id="checkboxCategorias">
+                                <div class="custom-control custom-checkbox mr-3 mb-2">
+                                    <input type="checkbox" class="custom-control-input check-cat" value="Ropa"
+                                        id="catRopa">
+                                    <label class="custom-control-label" for="catRopa">Ropa</label>
+                                </div>
+                                <div class="custom-control custom-checkbox mr-3 mb-2">
+                                    <input type="checkbox" class="custom-control-input check-cat" value="Calzado"
+                                        id="catCalzado">
+                                    <label class="custom-control-label" for="catCalzado">Calzado</label>
+                                </div>
+                                <div class="custom-control custom-checkbox mr-3 mb-2">
+                                    <input type="checkbox" class="custom-control-input check-cat" value="Tecnología"
+                                        id="catTecnologia">
+                                    <label class="custom-control-label" for="catTecnologia">Tecnología</label>
+                                </div>
+                                <div class="custom-control custom-checkbox mr-3 mb-2">
+                                    <input type="checkbox" class="custom-control-input check-cat" value="Maquillaje"
+                                        id="catMaquillaje">
+                                    <label class="custom-control-label" for="catMaquillaje">Maquillaje</label>
+                                </div>
+                                <div class="custom-control custom-checkbox mr-3 mb-2">
+                                    <input type="checkbox" class="custom-control-input check-cat" value="Juguetes"
+                                        id="catJuguetes">
+                                    <label class="custom-control-label" for="catJuguetes">Juguetes</label>
+                                </div>
+                                <div class="custom-control custom-checkbox mr-3 mb-2">
+                                    <input type="checkbox" class="custom-control-input check-cat" value="Varios"
+                                        id="catVarios">
+                                    <label class="custom-control-label" for="catVarios">Varios</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="errorFormProveedor" class="alert alert-danger font-weight-bold small py-2"
+                            style="display: none;">
+                            ⚠️ Por favor complete el nombre, el lugar, el teléfono y seleccione al menos una categoría.
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary font-weight-bold"
+                        data-dismiss="modal">Cancelar</button>
+                    <button type="button" id="btnGuardarProveedor" class="btn btn-primary font-weight-bold px-4">Guardar
+                        Proveedor</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts de jQuery y Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct"
+        crossorigin="anonymous"></script>
+
+    <script>
+        // Proveedores iniciales demo con sus respectivos lugares de origen
+        const proveedoresDemo = [
+            {
+                codigo: 1,
+                nombre: "Textiles del Norte",
+                lugar: "Medellín, Antioquia",
+                telefono: "3001234567",
+                correo: "contacto@textilesnorte.com",
+                categorias: ["Ropa"]
+            },
+            {
+                codigo: 2,
+                nombre: "Confecciones Infantiles S.A.S.",
+                lugar: "Bogotá, D.C.",
+                telefono: "3109876543",
+                correo: "ventas@confeccionesinfantiles.co",
+                categorias: ["Ropa"]
+            },
+            {
+                codigo: 3,
+                nombre: "Calzado Infantil Kids",
+                lugar: "Cali, Valle del Cauca",
+                telefono: "3204567890",
+                correo: "info@calzadokids.com",
+                categorias: ["Calzado"]
+            },
+            {
+                codigo: 4,
+                nombre: "Calzado Elegance",
+                lugar: "Bucaramanga, Santander",
+                telefono: "3156789012",
+                correo: "elegance@calzado.com",
+                categorias: ["Calzado"]
+            },
+            {
+                codigo: 5,
+                nombre: "TechImport Col",
+                lugar: "Bogotá, D.C.",
+                telefono: "3112223344",
+                correo: "soporte@techimport.co",
+                categorias: ["Tecnología"]
+            },
+            {
+                codigo: 6,
+                nombre: "Cosméticos y Belleza S.A.",
+                lugar: "Medellín, Antioquia",
+                telefono: "3123334455",
+                correo: "pedidos@cosmeticosybelleza.com",
+                categorias: ["Maquillaje"]
+            },
+            {
+                codigo: 7,
+                nombre: "Juguetes Divertidos Ltda.",
+                lugar: "Barranquilla, Atlántico",
+                telefono: "3145556677",
+                correo: "contacto@juguetesdivertidos.co",
+                categorias: ["Juguetes"]
+            },
+            {
+                codigo: 8,
+                nombre: "Variedades y Mas",
+                lugar: "Cali, Valle del Cauca",
+                telefono: "3167778899",
+                correo: "variedadesymas@gmail.com",
+                categorias: ["Varios"]
+            }
+        ];
+
+        function obtenerProveedores() {
+            let prov = localStorage.getItem('proveedores_pos');
+            if (!prov) {
+                localStorage.setItem('proveedores_pos', JSON.stringify(proveedoresDemo));
+                return proveedoresDemo;
+            }
+            return JSON.parse(prov);
+        }
+
+        function guardarProveedores(prov) {
+            localStorage.setItem('proveedores_pos', JSON.stringify(prov));
+        }
+
+        function renderizarProveedores() {
+            const proveedores = obtenerProveedores();
+            const busqueda = $('#inputBuscadorProveedores').val().toLowerCase().trim();
+            const $tbody = $('#tablaProveedoresCuerpo');
+            $tbody.empty();
+
+            let totalContador = 0;
+            const filasBuffer = [];
+
+            proveedores.forEach(p => {
+                const categoriasTexto = p.categorias ? p.categorias.join(', ') : '';
+                // Se incluye p.lugar dentro del texto de búsqueda global para que filtre por lugar
+                const textoBusquedaCompleto = (p.codigo + " " + p.nombre + " " + (p.lugar || "") + " " + p.telefono + " " + (p.correo || "") + " " + categoriasTexto).toLowerCase();
+
+                if (busqueda && !textoBusquedaCompleto.includes(busqueda)) {
+                    return;
+                }
+
+                totalContador++;
+
+                let badgesCategorias = '';
+                if (p.categorias && p.categorias.length > 0) {
+                    p.categorias.forEach(cat => {
+                        badgesCategorias += `<span class="badge badge-info mr-1">${cat}</span>`;
+                    });
+                } else {
+                    badgesCategorias = '<span class="text-muted small">Sin categorías</span>';
+                }
+
+                const filaHtml = `
+                    <tr>
+                        <td class="text-center align-middle"><strong class="text-secondary">#${p.codigo}</strong></td>
+                        <td class="align-middle text-left font-weight-bold text-dark">${p.nombre}</td>
+                        <td class="align-middle text-left text-muted">📍 ${p.lugar || 'No especificado'}</td>
+                        <td class="align-middle text-left">
+                            <span class="d-block text-dark">📞 ${p.telefono}</span>
+                            <small class="text-muted">✉️ ${p.correo || 'Sin correo electrónico'}</small>
+                        </td>
+                        <td class="align-middle text-left">${badgesCategorias}</td>
+                        <td class="text-center align-middle">
+                            <button type="button" class="btn btn-sm btn-outline-danger font-weight-bold btn-eliminar-proveedor" data-codigo="${p.codigo}">Eliminar</button>
+                        </td>
+                    </tr>
+                `;
+                filasBuffer.push(filaHtml);
+            });
+
+            $tbody.html(filasBuffer.join(''));
+
+            if (filasBuffer.length === 0) {
+                $tbody.html(`<tr><td colspan="6" class="text-center text-muted py-4">No se encontraron proveedores con ese criterio de búsqueda.</td></tr>`);
+            }
+
+            $('#lblTotalProveedores').text(totalContador.toLocaleString('es-CO') + ' proveedores');
+        }
+
+        $(document).ready(function () {
+            renderizarProveedores();
+
+            // Buscador en tiempo real (ahora incluye el lugar)
+            $('#inputBuscadorProveedores').on('input', function () {
+                renderizarProveedores();
+            });
+
+            // Guardar nuevo proveedor en el localStorage
+            $('#btnGuardarProveedor').click(function () {
+                const nombre = $('#nuevoNombreProv').val().trim();
+                const lugar = $('#nuevoLugarProv').val().trim();
+                const telefono = $('#nuevoTelefonoProv').val().trim();
+                const correo = $('#nuevoCorreoProv').val().trim();
+
+                let categoriasSeleccionadas = [];
+                $('.check-cat:checked').each(function () {
+                    categoriasSeleccionadas.push($(this).val());
+                });
+
+                if (!nombre || !lugar || !telefono || categoriasSeleccionadas.length === 0) {
+                    $('#errorFormProveedor').slideDown(150);
+                    return;
+                }
+
+                $('#errorFormProveedor').hide();
+
+                let proveedores = obtenerProveedores();
+
+                let nuevoCodigo = 1;
+                if (proveedores.length > 0) {
+                    const codigos = proveedores.map(p => parseInt(p.codigo) || 0);
+                    nuevoCodigo = Math.max(...codigos) + 1;
+                }
+
+                const nuevoProveedor = {
+                    codigo: nuevoCodigo,
+                    nombre,
+                    lugar,
+                    telefono,
+                    correo,
+                    categorias: categoriasSeleccionadas
+                };
+
+                proveedores.push(nuevoProveedor);
+                guardarProveedores(proveedores);
+
+                $('#formNuevoProveedor')[0].reset();
+                $('.check-cat').prop('checked', false);
+                $('#modalNuevoProveedor').modal('hide');
+
+                renderizarProveedores();
+                alert("¡Proveedor registrado con éxito con el código #" + nuevoCodigo + "!");
+            });
+
+            // Eliminar proveedor por completo con confirmación
+            $(document).on('click', '.btn-eliminar-proveedor', function () {
+                const codigoProv = $(this).data('codigo');
+                if (confirm("¿Estás seguro de que deseas eliminar este proveedor por completo del sistema?")) {
+                    let proveedores = obtenerProveedores();
+                    proveedores = proveedores.filter(p => parseInt(p.codigo) !== parseInt(codigoProv));
+                    guardarProveedores(proveedores);
+                    renderizarProveedores();
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

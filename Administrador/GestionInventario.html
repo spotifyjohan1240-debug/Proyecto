@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+        integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous" />
+
+    <title>Gestión de Inventario</title>
+    <style>
+        .fila-interactiva {
+            cursor: pointer;
+        }
+
+        .fila-interactiva:hover {
+            background-color: rgba(0, 123, 255, 0.05);
+        }
+
+        .sub-tabla-variantes {
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+
+<body style="background-color: #f4f5f7;">
+    <div class="container-fluid min-vh-100 p-3 p-md-4 d-flex flex-column">
+
+        <!-- Barra superior de navegación -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="h4 font-weight-bold text-dark m-0">Gestión de Inventario</h3>
+            <a href="PanelCentralAdministrador.html" class="btn btn-outline-secondary font-weight-bold">
+                ← Volver al Panel
+            </a>
+        </div>
+
+        <!-- NAVBAR DE CATEGORÍAS (Generado dinámicamente) -->
+        <div class="card shadow-sm border-0 mb-3 bg-white">
+            <div class="card-body py-2">
+                <ul class="nav nav-pills nav-fill" id="pillsCategorias" role="tablist">
+                    <!-- Generado por JavaScript -->
+                </ul>
+            </div>
+        </div>
+
+        <!-- BARRA DE BUSCADOR Y BOTÓN DE ALERTAS POR AGOTARSE -->
+        <div class="row mb-3 justify-content-center">
+            <div class="col-12 col-md-7 mb-2 mb-md-0">
+                <div class="input-group shadow-sm">
+                    <input type="text" id="inputBusquedaManual" class="form-control"
+                        placeholder="Escribe nombre, código o descripción del producto...">
+                    <div class="input-group-append">
+                        <button class="btn btn-warning font-weight-bold text-dark px-4" type="button"
+                            id="btnBuscarManual">Buscar</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-4 col-lg-3 text-md-right">
+                <button type="button" id="btnProductosPorAgotarse"
+                    class="btn btn-outline-danger font-weight-bold shadow-sm btn-block d-flex align-items-center justify-content-center">
+                    ⚠️ Por agotarse <span id="badgeContadorAgotarse" class="badge badge-warning text-dark ml-2">0</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- TABLA MAESTRA DE INVENTARIO -->
+        <div class="card shadow-sm border-0 flex-fill mb-3 bg-white">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead class="thead-light text-center">
+                            <tr>
+                                <th style="width: 70px;" class="align-middle text-center">Imagen</th>
+                                <th style="width: 60px;" class="align-middle text-center">Código</th>
+                                <th class="align-middle text-center">Referencia / Producto</th>
+                                <th class="align-middle text-center">Categoría</th>
+                                <th class="align-middle text-center">Descripción IA</th>
+                                <th class="align-middle text-center">Proveedor (Contacto)</th>
+                                <th class="align-middle text-center">Stock Total</th>
+                                <th class="align-middle text-center">Estado</th>
+                                <th class="align-middle text-center">Costo Unit.</th>
+                                <th class="align-middle text-center">Costo Total</th>
+                                <th class="align-middle text-center">Precio Venta</th>
+                                <th class="align-middle text-center">Venta Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaInventarioCuerpo">
+                            <!-- Se llena dinámicamente con JavaScript desde localStorage -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TARJETAS TOTALIZADORAS INFERIORES -->
+        <div class="card shadow-sm border-0 bg-white p-3">
+            <div class="row align-items-center text-center text-md-left">
+                <div class="col-12 col-md-3 mb-2 mb-md-0 border-right">
+                    <span class="text-muted small text-uppercase font-weight-bold d-block">Total Artículos en
+                        Stock</span>
+                    <h4 id="lblTotalUnidades" class="font-weight-bold text-dark m-0">0 unidades</h4>
+                </div>
+                <div class="col-12 col-md-3 mb-2 mb-md-0 border-right">
+                    <span class="text-muted small text-uppercase font-weight-bold d-block">Referencias
+                        Registradas</span>
+                    <h4 id="lblTotalReferencias" class="font-weight-bold text-dark m-0">0 ítems</h4>
+                </div>
+                <div class="col-12 col-md-3 mb-2 mb-md-0 border-right">
+                    <span class="text-muted small text-uppercase font-weight-bold d-block">Valor Total (Costo)</span>
+                    <h4 id="lblValorTotalInventario" class="font-weight-bold text-success m-0">$0</h4>
+                </div>
+                <div class="col-12 col-md-3">
+                    <span class="text-muted small text-uppercase font-weight-bold d-block">Valor Total (Venta
+                        Proyectada)</span>
+                    <h4 id="lblValorTotalVenta" class="font-weight-bold text-primary m-0">$0</h4>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MODAL DE RESULTADOS DE BÚSQUEDA MANUAL -->
+    <div class="modal fade" id="modalResultadosBusqueda" tabindex="-1" role="dialog"
+        aria-labelledby="modalBusquedaLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title font-weight-bold" id="modalBusquedaLabel">
+                        🔍 Coincidencias encontradas en Inventario
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body bg-light">
+                    <p class="text-muted small mb-3">Se encontraron productos con ese criterio. Seleccione el artículo
+                        para ubicarlo y resaltarlo en la tabla:</p>
+                    <div class="row" id="contenedorTarjetasResultados">
+                        <!-- Se genera dinámicamente con JS -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary font-weight-bold"
+                        data-dismiss="modal">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE PRODUCTOS POR AGOTARSE (AGRUPADO POR PRODUCTO) -->
+    <div class="modal fade" id="modalProductosPorAgotarse" tabindex="-1" role="dialog"
+        aria-labelledby="modalAgotarseLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title font-weight-bold" id="modalAgotarseLabel">
+                        ⚠️ Alertas de Stock Bajo (3 unidades o menos)
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body bg-light">
+                    <div class="table-responsive">
+                        <table class="table table-hover bg-white border rounded align-middle">
+                            <thead class="thead-light text-center">
+                                <tr>
+                                    <th style="width: 80px;">Código</th>
+                                    <th class="text-left">Producto / Referencia</th>
+                                    <th>Categoría</th>
+                                    <th class="text-left">Tallas / Variantes Críticas</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaAgotarseCuerpo">
+                                <!-- Se llena dinámicamente con JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary font-weight-bold"
+                        data-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts de jQuery y Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct"
+        crossorigin="anonymous"></script>
+
+    <script>
+        // Configuración centralizada de Categorías
+        const categoriasConfig = [
+            { nombre: "Todos", etiqueta: "🌐 Inventario General", despliegaVariantes: false },
+            { nombre: "Ropa", etiqueta: "👕 Ropa", despliegaVariantes: true },
+            { nombre: "Calzado", etiqueta: "👟 Calzado", despliegaVariantes: true },
+            { nombre: "Tecnología", etiqueta: "⚡ Tecnología", despliegaVariantes: false },
+            { nombre: "Maquillaje", etiqueta: "💄 Maquillaje", despliegaVariantes: false },
+            { nombre: "Juguetes", etiqueta: "🧸 Juguetes", despliegaVariantes: false },
+            { nombre: "Varios", etiqueta: "📦 Varios", despliegaVariantes: false }
+        ];
+
+        // 12 Ejemplos oficiales
+        const productosInicialesDemo = [
+            {
+                codigo: 1,
+                nombre: "Camiseta Casual Azul",
+                categoria: "Ropa",
+                genero: "Niño",
+                imagen: "https://via.placeholder.com/150/007bff/ffffff?text=Camiseta",
+                descripcionIA: "Camiseta de algodón color azul con estampado frontal, manga corta.",
+                proveedor: { nombre: "Textiles del Norte", contacto: "Tel: 3001234567" },
+                costo: 22000,
+                precio: 45000,
+                variantes: [
+                    { talla: "S", stock: 4 },
+                    { talla: "M", stock: 8 },
+                    { talla: "L", stock: 2 }
+                ]
+            },
+            {
+                codigo: 2,
+                nombre: "Vestido Floral Rosa",
+                categoria: "Ropa",
+                genero: "Niña",
+                imagen: "https://via.placeholder.com/150/e83e8c/ffffff?text=Vestido",
+                descripcionIA: "Vestido fresco de verano con motivos florales y lazo posterior.",
+                proveedor: { nombre: "Confecciones Infantiles S.A.S.", contacto: "Tel: 3109876543" },
+                costo: 30000,
+                precio: 65000,
+                variantes: [
+                    { talla: "Talla 4", stock: 3 },
+                    { talla: "Talla 6", stock: 5 },
+                    { talla: "Talla 8", stock: 2 }
+                ]
+            },
+            {
+                codigo: 3,
+                nombre: "Hoodie Clásico Oversize",
+                categoria: "Ropa",
+                genero: "Unisex",
+                imagen: "https://via.placeholder.com/150/495057/ffffff?text=Hoodie",
+                descripcionIA: "Sudadera con capucha de felpa suave, estilo urbano y cómodo.",
+                proveedor: { nombre: "Textiles del Norte", contacto: "Tel: 3001234567" },
+                costo: 45000,
+                precio: 90000,
+                variantes: [
+                    { talla: "S", stock: 5 },
+                    { talla: "M", stock: 6 },
+                    { talla: "L", stock: 4 }
+                ]
+            },
+            {
+                codigo: 4,
+                nombre: "Camisa Formal Ejecutiva",
+                categoria: "Ropa",
+                genero: "Hombre",
+                imagen: "https://via.placeholder.com/150/004085/ffffff?text=Camisa+Hombre",
+                descripcionIA: "Camisa formal de algodón manga larga para hombre, corte slim fit.",
+                proveedor: { nombre: "Confecciones Elegance", contacto: "Tel: 3124445566" },
+                costo: 35000,
+                precio: 75000,
+                variantes: [
+                    { talla: "S", stock: 2 },
+                    { talla: "M", stock: 7 },
+                    { talla: "L", stock: 5 }
+                ]
+            },
+            {
+                codigo: 5,
+                nombre: "Tenis Deportivos Infantiles",
+                categoria: "Calzado",
+                genero: "Niño",
+                imagen: "https://via.placeholder.com/150/343a40/ffffff?text=Tenis+Niño",
+                descripcionIA: "Zapatillas deportivas con velcro y suela flexible antideslizante para niños.",
+                proveedor: { nombre: "Calzado Infantil Kids", contacto: "Tel: 3204567890" },
+                costo: 50000,
+                precio: 95000,
+                variantes: [
+                    { talla: "Talla 28", stock: 3 },
+                    { talla: "Talla 30", stock: 5 },
+                    { talla: "Talla 32", stock: 2 }
+                ]
+            },
+            {
+                codigo: 6,
+                nombre: "Botas de Cuero Elegance",
+                categoria: "Calzado",
+                genero: "Mujer",
+                imagen: "https://via.placeholder.com/150/6f42c1/ffffff?text=Botas+Mujer",
+                descripcionIA: "Botas altas de cuero sintético con tacón ancho para mujer.",
+                proveedor: { nombre: "Calzado Elegance", contacto: "Tel: 3156789012" },
+                costo: 80000,
+                precio: 160000,
+                variantes: [
+                    { talla: "Talla 36", stock: 2 },
+                    { talla: "Talla 37", stock: 4 },
+                    { talla: "Talla 38", stock: 3 }
+                ]
+            },
+            {
+                codigo: 7,
+                nombre: "Zapatillas Urbanas Casuales",
+                categoria: "Calzado",
+                genero: "Unisex",
+                imagen: "https://via.placeholder.com/150/e0a800/ffffff?text=Zapatillas",
+                descripcionIA: "Tenis urbanos de lona versátiles para uso diario.",
+                proveedor: { nombre: "Calzado Global", contacto: "Tel: 3189990011" },
+                costo: 40000,
+                precio: 80000,
+                variantes: [
+                    { talla: "Talla 39", stock: 4 },
+                    { talla: "Talla 40", stock: 6 },
+                    { talla: "Talla 41", stock: 3 }
+                ]
+            },
+            {
+                codigo: 8,
+                nombre: "Audífonos Inalámbricos Bluetooth",
+                categoria: "Tecnología",
+                genero: "Unisex",
+                imagen: "https://via.placeholder.com/150/20c997/ffffff?text=Audifonos",
+                descripcionIA: "Audífonos de diadema con conectividad bluetooth y estuche de carga.",
+                proveedor: { nombre: "TechImport Col", contacto: "Tel: 3112223344" },
+                costo: 40000,
+                precio: 85000,
+                variantes: [{ talla: "Única", stock: 2 }]
+            },
+            {
+                codigo: 9,
+                nombre: "Base Líquida Matte",
+                categoria: "Maquillaje",
+                genero: "Mujer",
+                imagen: "https://via.placeholder.com/150/fd7e14/ffffff?text=Base",
+                descripcionIA: "Base de maquillaje de alta cobertura con acabado matte de larga duración.",
+                proveedor: { nombre: "Cosméticos y Belleza S.A.", contacto: "Tel: 3123334455" },
+                costo: 15000,
+                precio: 32000,
+                variantes: [{ talla: "Tono Único", stock: 10 }]
+            },
+            {
+                codigo: 10,
+                nombre: "Carro a Control Remoto",
+                categoria: "Juguetes",
+                genero: "Niño",
+                imagen: "https://via.placeholder.com/150/6610f2/ffffff?text=Carro+RC",
+                descripcionIA: "Vehículo todoterreno a escala con control remoto inalámbrico.",
+                proveedor: { nombre: "Juguetes Divertidos Ltda.", contacto: "Tel: 3145556677" },
+                costo: 35000,
+                precio: 75000,
+                variantes: [{ talla: "Única", stock: 3 }]
+            },
+            {
+                codigo: 11,
+                nombre: "Cordones para Zapatos",
+                categoria: "Varios",
+                genero: "Unisex",
+                imagen: "https://via.placeholder.com/150/6c757d/ffffff?text=Cordones",
+                descripcionIA: "Cordones trenzados de alta resistencia para calzado deportivo o formal.",
+                proveedor: { nombre: "Variedades y Mas", contacto: "Tel: 3167778899" },
+                costo: 2000,
+                precio: 5000,
+                variantes: [{ talla: "Única", stock: 25 }]
+            },
+            {
+                codigo: 12,
+                nombre: "Gafas de Sol Infantil",
+                categoria: "Varios",
+                genero: "Niña",
+                imagen: "https://via.placeholder.com/150/3d3d3d/ffffff?text=Gafas+Sol",
+                descripcionIA: "Gafas de sol con protección UV para niños y diseño flexible.",
+                proveedor: { nombre: "Variedades y Mas", contacto: "Tel: 3167778899" },
+                costo: 10000,
+                precio: 25000,
+                variantes: [{ talla: "Única", stock: 12 }]
+            }
+        ];
+
+        function obtenerInventario() {
+            let inv = localStorage.getItem('inventario_pos');
+            if (!inv) {
+                localStorage.setItem('inventario_pos', JSON.stringify(productosInicialesDemo));
+                return productosInicialesDemo;
+            }
+            return JSON.parse(inv);
+        }
+
+        let categoriaActiva = "Todos";
+
+        function renderizarCategoriasNavbar() {
+            const $ul = $('#pillsCategorias');
+            $ul.empty();
+
+            categoriasConfig.forEach(cat => {
+                const isActive = (cat.nombre === categoriaActiva) ? 'active' : '';
+                const htmlLi = `
+                    <li class="nav-item">
+                        <a class="nav-link font-weight-bold ${isActive}" id="tab-${cat.nombre.toLowerCase()}" href="#" data-categoria="${cat.nombre}" role="tab">${cat.etiqueta}</a>
+                    </li>
+                `;
+                $ul.append(htmlLi);
+            });
+        }
+
+        // Calcula las alertas agrupando por producto con sus tallas/variantes en nivel crítico (3 unds o menos)
+        function calcularAlertasAgotarse() {
+            const inventario = obtenerInventario();
+            const productosAfectados = [];
+
+            inventario.forEach(p => {
+                if (categoriaActiva !== "Todos" && p.categoria !== categoriaActiva) {
+                    return;
+                }
+
+                const configCat = categoriasConfig.find(c => c.nombre === p.categoria);
+                const manejaTallas = configCat ? configCat.despliegaVariantes : false;
+                let variantesCriticas = [];
+
+                if (manejaTallas && p.variantes && p.variantes.length > 0) {
+                    p.variantes.forEach(v => {
+                        const cant = parseInt(v.stock) || 0;
+                        if (cant <= 3) {
+                            variantesCriticas.push({ talla: v.talla, stock: cant });
+                        }
+                    });
+                } else {
+                    let stockTotal = 0;
+                    if (p.variantes) p.variantes.forEach(v => stockTotal += parseInt(v.stock) || 0);
+                    if (stockTotal <= 3) {
+                        variantesCriticas.push({ talla: "General / Única", stock: stockTotal });
+                    }
+                }
+
+                if (variantesCriticas.length > 0) {
+                    productosAfectados.push({
+                        codigo: p.codigo,
+                        nombre: p.nombre,
+                        categoria: p.categoria,
+                        variantesCriticas: variantesCriticas
+                    });
+                }
+            });
+
+            return productosAfectados;
+        }
+
+        function actualizarBadgeAgotarse() {
+            const alertas = calcularAlertasAgotarse();
+            $('#badgeContadorAgotarse').text(alertas.length);
+        }
+
+        function renderizarInventario(codigoResaltar = null) {
+            const inventario = obtenerInventario();
+            const $tbody = $('#tablaInventarioCuerpo');
+
+            let totalUnidadesGeneral = 0;
+            let totalCostoInventarioGeneral = 0;
+            let totalVentaInventarioGeneral = 0;
+            let totalReferenciasCont = 0;
+
+            const filasBuffer = [];
+
+            inventario.forEach(p => {
+                if (categoriaActiva !== "Todos" && p.categoria !== categoriaActiva) {
+                    return;
+                }
+
+                let stockTotalProd = 0;
+                p.variantes.forEach(v => { stockTotalProd += parseInt(v.stock) || 0; });
+
+                const costoTotalProd = p.costo * stockTotalProd;
+                const ventaTotalProd = p.precio * stockTotalProd;
+
+                totalReferenciasCont++;
+                totalUnidadesGeneral += stockTotalProd;
+                totalCostoInventarioGeneral += costoTotalProd;
+                totalVentaInventarioGeneral += ventaTotalProd;
+
+                const estadoBadge = stockTotalProd > 0
+                    ? '<span class="badge badge-success p-2">Activo</span>'
+                    : '<span class="badge badge-secondary p-2">Agotado</span>';
+
+                const esResaltado = (codigoResaltar && parseInt(p.codigo) === parseInt(codigoResaltar));
+                const claseFila = esResaltado ? 'table-warning font-weight-bold' : '';
+                const imagenSrc = p.imagen || "https://via.placeholder.com/150?text=Sin+Foto";
+
+                const configCat = categoriasConfig.find(c => c.nombre === p.categoria);
+                const permiteDesplegar = configCat ? configCat.despliegaVariantes : false;
+
+                const claseInteractiva = permiteDesplegar ? 'fila-interactiva' : '';
+                const iconoDespliegue = permiteDesplegar ? ' <small class="text-muted">▼</small>' : '';
+
+                const badgeGenero = p.genero
+                    ? `<span class="badge badge-secondary" style="font-size: 0.75rem;">${p.genero}</span>`
+                    : '';
+
+                let filaHtml = `
+                    <tr class="${claseFila} ${claseInteractiva}" id="fila-prod-${p.codigo}" data-codigo="${p.codigo}">
+                        <td class="text-center align-middle">
+                            <img src="${imagenSrc}" alt="Foto" class="rounded border" style="width: 50px; height: 50px; object-fit: cover;">
+                        </td>
+                        <td class="text-center align-middle"><strong class="text-secondary">#${p.codigo}</strong></td>
+                        <td class="align-middle text-left">
+                            <span class="font-weight-bold text-dark d-block">${p.nombre} ${iconoDespliegue}</span>
+                            ${badgeGenero}
+                        </td>
+                        <td class="text-center align-middle"><span class="badge badge-info">${p.categoria}</span></td>
+                        <td class="align-middle text-left"><small class="text-muted">${p.descripcionIA || 'Sin descripción'}</small></td>
+                        <td class="align-middle text-left">
+                            <span class="font-weight-bold text-dark d-block">${p.proveedor ? p.proveedor.nombre : 'N/A'}</span>
+                            <small class="text-muted">${p.proveedor ? p.proveedor.contacto : ''}</small>
+                        </td>
+                        <td class="text-center align-middle font-weight-bold h5 mb-0">${stockTotalProd}</td>
+                        <td class="text-center align-middle">${estadoBadge}</td>
+                        <td class="text-right align-middle text-muted">$${p.costo.toLocaleString('es-CO')}</td>
+                        <td class="text-right align-middle text-secondary font-weight-bold">$${costoTotalProd.toLocaleString('es-CO')}</td>
+                        <td class="text-right align-middle font-weight-bold text-success">$${p.precio.toLocaleString('es-CO')}</td>
+                        <td class="text-right align-middle text-success font-weight-bold">$${ventaTotalProd.toLocaleString('es-CO')}</td>
+                    </tr>
+                `;
+
+                if (permiteDesplegar) {
+                    let detalleVariantesHtml = `<div class="p-2 pl-4"><strong class="text-dark small d-block mb-1">Tallas:</strong><div class="d-flex flex-wrap gap-3">`;
+                    p.variantes.forEach(v => {
+                        let colorStock = v.stock > 3 ? 'text-success' : (v.stock > 0 ? 'text-warning font-weight-bold' : 'text-danger');
+                        detalleVariantesHtml += `<span class="badge badge-white border p-2 mr-2 mb-1"><strong>${v.talla}:</strong> <span class="${colorStock}">${v.stock} unidades</span></span>`;
+                    });
+                    detalleVariantesHtml += `</div></div>`;
+
+                    filaHtml += `
+                        <tr id="subrow-${p.codigo}" class="sub-tabla-variantes" style="display: none;">
+                            <td colspan="12" class="p-2 border-top-0">
+                                ${detalleVariantesHtml}
+                            </td>
+                        </tr>
+                    `;
+                }
+
+                filasBuffer.push(filaHtml);
+            });
+
+            $tbody.html(filasBuffer.join(''));
+
+            if (filasBuffer.length === 0) {
+                $tbody.html(`<tr><td colspan="12" class="text-center text-muted py-4">No se encontraron productos en esta categoría.</td></tr>`);
+            }
+
+            $('#lblTotalUnidades').text(totalUnidadesGeneral.toLocaleString('es-CO') + ' unidades');
+            $('#lblTotalReferencias').text(totalReferenciasCont.toLocaleString('es-CO') + ' ítems');
+            $('#lblValorTotalInventario').text('$' + totalCostoInventarioGeneral.toLocaleString('es-CO'));
+            $('#lblValorTotalVenta').text('$' + totalVentaInventarioGeneral.toLocaleString('es-CO'));
+
+            actualizarBadgeAgotarse();
+
+            if (codigoResaltar) {
+                const elementoFila = document.getElementById(`fila-prod-${codigoResaltar}`);
+                if (elementoFila) {
+                    elementoFila.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        }
+
+        $(document).ready(function () {
+            renderizarCategoriasNavbar();
+            renderizarInventario();
+
+            $(document).on('click', '#pillsCategorias .nav-link', function (e) {
+                e.preventDefault();
+                $('#pillsCategorias .nav-link').removeClass('active');
+                $(this).addClass('active');
+                categoriaActiva = $(this).data('categoria');
+                renderizarInventario();
+            });
+
+            $(document).on('click', '.fila-interactiva', function () {
+                const codigo = $(this).data('codigo');
+                const subrow = $(`#subrow-${codigo}`);
+                if (subrow.length) {
+                    subrow.toggle();
+                }
+            });
+
+            // Abrir Modal de Productos por Agotarse (Agrupado por producto con badges de tallas)
+            $('#btnProductosPorAgotarse').click(function () {
+                const alertas = calcularAlertasAgotarse();
+                const $tbodyAlertas = $('#tablaAgotarseCuerpo');
+                $tbodyAlertas.empty();
+
+                if (alertas.length === 0) {
+                    $tbodyAlertas.html(`<tr><td colspan="4" class="text-center text-success py-4 font-weight-bold">✓ ¡Excelente! No hay productos ni tallas por agotarse en esta categoría.</td></tr>`);
+                } else {
+                    alertas.forEach(a => {
+                        let badgesVariantesHtml = '';
+                        a.variantesCriticas.forEach(vc => {
+                            const badgeColor = vc.stock === 0 ? 'badge-danger' : 'badge-warning text-dark';
+                            badgesVariantesHtml += `
+                                <span class="badge ${badgeColor} p-2 mr-2 mb-1" style="font-size: 0.85rem;">
+                                    <strong>${vc.talla}:</strong> ${vc.stock} unds
+                                </span>
+                            `;
+                        });
+
+                        const filaHtml = `
+                            <tr>
+                                <td class="text-center align-middle"><strong class="text-secondary">#${a.codigo}</strong></td>
+                                <td class="align-middle text-left font-weight-bold text-dark">${a.nombre}</td>
+                                <td class="text-center align-middle"><span class="badge badge-info">${a.categoria}</span></td>
+                                <td class="align-middle text-left">${badgesVariantesHtml}</td>
+                            </tr>
+                        `;
+                        $tbodyAlertas.append(filaHtml);
+                    });
+                }
+
+                $('#modalProductosPorAgotarse').modal('show');
+            });
+
+            // Buscador manual
+            $('#btnBuscarManual').click(function () {
+                const query = $('#inputBusquedaManual').val().trim().toLowerCase();
+                const inventario = obtenerInventario();
+
+                const resultados = inventario.filter(prod =>
+                    prod.nombre.toLowerCase().includes(query) || prod.codigo.toString().includes(query) || (prod.descripcionIA && prod.descripcionIA.toLowerCase().includes(query))
+                );
+
+                if (resultados.length === 0) {
+                    alert("No se encontraron productos coincidentes.");
+                    return;
+                }
+
+                let htmlCards = '';
+                resultados.forEach(p => {
+                    let stockTot = 0;
+                    p.variantes.forEach(v => { stockTot += parseInt(v.stock) || 0; });
+                    const img = p.imagen || "https://via.placeholder.com/150?text=Sin+Foto";
+
+                    htmlCards += `
+                        <div class="col-12 col-md-4 mb-3">
+                            <div class="card h-100 shadow-sm border-0 text-center p-2">
+                                <div class="rounded overflow-hidden mb-2 d-flex align-items-center justify-content-center bg-light border" style="height: 120px;">
+                                    <img src="${img}" alt="Producto" style="max-height: 100%; max-width: 100%; object-fit: cover;">
+                                </div>
+                                <div class="card-body p-1 d-flex flex-column justify-content-between">
+                                    <div>
+                                        <h6 class="font-weight-bold text-dark m-0 mb-1">${p.nombre}</h6>
+                                        <small class="text-muted d-block mb-1">COD: #${p.codigo} | Stock: ${stockTot}</small>
+                                        <span class="badge badge-success mb-2">$${p.precio.toLocaleString('es-CO')}</span>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-warning font-weight-bold text-dark btn-seleccionar-producto btn-block" data-codigo="${p.codigo}">
+                                        Seleccionar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                $('#contenedorTarjetasResultados').html(htmlCards);
+                $('#modalResultadosBusqueda').modal('show');
+            });
+
+            $(document).on('click', '.btn-seleccionar-producto', function () {
+                const codigoProd = $(this).data('codigo');
+                const inventario = obtenerInventario();
+                const productoEncontrado = inventario.find(p => parseInt(p.codigo) === parseInt(codigoProd));
+
+                if (productoEncontrado) {
+                    const catProd = productoEncontrado.categoria;
+
+                    if (categoriaActiva !== "Todos" && categoriaActiva !== catProd) {
+                        categoriaActiva = "Todos";
+                        renderizarCategoriasNavbar();
+                    }
+
+                    $('#modalResultadosBusqueda').modal('hide');
+                    $('#inputBusquedaManual').val('');
+                    renderizarInventario(codigoProd);
+
+                    setTimeout(() => {
+                        const subrow = $(`#subrow-${codigoProd}`);
+                        if (subrow.length) subrow.show();
+                    }, 300);
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

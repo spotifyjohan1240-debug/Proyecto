@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+        integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous" />
+
+    <title>Registrar Venta</title>
+</head>
+
+<body style="background-color: #f4f5f7;">
+    <div class="container-fluid min-vh-100 p-3 p-md-4 d-flex flex-column">
+
+        <!-- Barra superior de navegación -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="h4 font-weight-bold text-dark m-0">Módulo de Venta</h3>
+            <a href="PanelCentralVendedor.html" class="btn btn-outline-secondary font-weight-bold">
+                ← Volver al Panel
+            </a>
+        </div>
+
+        <!-- Alertas de éxito y errores de stock -->
+        <div id="alertaVentaExitoso" class="alert alert-success font-weight-bold shadow-sm py-2 mb-3"
+            style="display: none;">
+            ✓ ¡Venta registrada con éxito! El inventario ha sido actualizado automáticamente.
+        </div>
+        <div id="alertaStockExcedido" class="alert alert-danger font-weight-bold shadow-sm py-2 mb-3 d-none">
+            ⚠️ Uno o más productos superan el stock disponible en la talla seleccionada. Por favor verifique las
+            cantidades.
+        </div>
+
+        <!-- Contenido Principal: Pantalla Dividida -->
+        <div class="row flex-fill">
+
+            <!-- PANEL IZQUIERDO: Transmisión de Cámara y Buscador Manual -->
+            <div class="col-12 col-lg-5 mb-4 mb-lg-0 d-flex flex-column">
+                <div class="card shadow-sm border-0 flex-fill d-flex flex-column justify-content-between p-3 bg-white">
+                    <div>
+                        <h5 class="card-title font-weight-bold text-center text-muted mb-3">
+                            Búsqueda de Productos
+                        </h5>
+
+                        <!-- Visor de la Cámara -->
+                        <div
+                            class="embed-responsive embed-responsive-4by3 bg-dark rounded overflow-hidden shadow-inner mb-3">
+                            <video id="webcam" class="embed-responsive-item" autoplay playsinline muted
+                                style="object-fit: cover;"></video>
+                        </div>
+
+                        <!-- Buscador Manual -->
+                        <div class="input-group mb-2">
+                            <input type="text" id="inputBusquedaManual" class="form-control"
+                                placeholder="Escribe nombre o código del producto...">
+                            <div class="input-group-append">
+                                <button class="btn btn-warning font-weight-bold text-dark" type="button"
+                                    id="btnBuscarManual">Buscar</button>
+                            </div>
+                        </div>
+                        <small class="text-muted text-center d-block">
+                            Usa la búsqueda manual para encontrar y agregar productos al carrito.
+                        </small>
+                    </div>
+
+                    <div class="mt-3">
+                        <button id="btnLimpiarCarrito" class="btn btn-outline-secondary btn-block font-weight-bold">
+                            Vaciar Carrito
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANEL DERECHO: Carrito de Compras / Lista de Productos -->
+            <div class="col-12 col-lg-7 d-flex flex-column">
+                <div class="card shadow-sm border-0 flex-fill d-flex flex-column justify-content-between p-3 bg-white">
+                    <div>
+                        <h5 class="card-title font-weight-bold text-dark mb-3">
+                            Detalle de la Factura
+                        </h5>
+
+                        <!-- Alerta de advertencia si faltan especificaciones -->
+                        <div id="alertaTalla" class="alert alert-warning alert-dismissible fade show d-none"
+                            role="alert">
+                            <strong>¡Atención!</strong> Todos los productos deben tener sus especificaciones completas.
+                        </div>
+
+                        <!-- Tabla de productos en carrito -->
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th style="width: 160px;">Talla / Variante</th>
+                                        <th style="width: 130px;" class="text-center">Cantidad</th>
+                                        <th class="text-right">Precio</th>
+                                        <th class="text-center" style="width: 90px;">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="listaProductos">
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted py-4 mensaje-carrito-vacio">
+                                            🛒 El carrito está vacío. Usa el buscador para añadir productos.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Resumen y Totalizador -->
+                    <div class="border-top pt-3 mt-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="h4 m-0 text-muted">Total a Cobrar:</span>
+                            <span id="totalVenta" class="h2 m-0 font-weight-bold text-success">$0</span>
+                        </div>
+                        <button type="button" id="btnFinalizarCobrar"
+                            class="btn btn-primary btn-lg btn-block font-weight-bold shadow">
+                            Finalizar y Cobrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MODAL DE RESULTADOS DE BÚSQUEDA MANUAL -->
+    <div class="modal fade" id="modalResultadosBusqueda" tabindex="-1" role="dialog"
+        aria-labelledby="modalBusquedaLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title font-weight-bold" id="modalBusquedaLabel">
+                        🔍 Productos en Inventario
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body bg-light">
+                    <p class="text-muted small mb-3">Selecciona el artículo exacto que deseas agregar a la venta:</p>
+                    <div class="row" id="contenedorTarjetasResultados">
+                        <!-- Se genera dinámicamente con JS -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary font-weight-bold"
+                        data-dismiss="modal">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VENTANA EMERGENTE (MODAL) DE PRE-FACTURACIÓN Y PAGO -->
+    <div class="modal fade" id="modalConfirmarVenta" tabindex="-1" role="dialog" aria-labelledby="modalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title font-weight-bold text-dark" id="modalLabel">
+                        📋 Resumen de Venta para Confirmación
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="row">
+                        <!-- COLUMNA IZQUIERDA: Productos y Total -->
+                        <div class="col-12 col-lg-8 border-right">
+                            <p class="text-muted">Verifique los productos, tallas y cantidades con el cliente antes de
+                                confirmar el cobro:</p>
+
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered">
+                                    <thead class="thead-light">
+                                        <tr>
+                                            <th>Producto</th>
+                                            <th style="width: 120px;">Talla</th>
+                                            <th style="width: 100px;" class="text-center">Cantidad</th>
+                                            <th class="text-right">Subtotal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="resumenModalProductos">
+                                        <!-- Se llena automáticamente con JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="text-right mt-3 bg-light p-3 rounded">
+                                <h4 class="font-weight-bold text-success m-0">
+                                    Total a Pagar: <span id="totalModalFinal">$0</span>
+                                </h4>
+                            </div>
+                        </div>
+
+                        <!-- COLUMNA DERECHA: Método de Pago y Descuento -->
+                        <div class="col-12 col-lg-4 d-flex flex-column justify-content-start mt-3 mt-lg-0">
+
+                            <!-- TARJETA 1: Método de Pago -->
+                            <div class="p-3 bg-light rounded border mb-3">
+                                <h5 class="font-weight-bold text-dark mb-3">💳 Método de Pago</h5>
+
+                                <div id="errorMetodoPago"
+                                    class="alert alert-danger font-weight-bold py-2 small mb-3 d-none">
+                                    ⚠️ Debe seleccionar un método de pago.
+                                </div>
+
+                                <div class="form-group mb-0">
+                                    <label class="font-weight-bold text-dark">Seleccionar Opción</label>
+                                    <select id="selectMetodoPago" class="form-control form-control-lg">
+                                        <option value="" selected disabled>-- Seleccione --</option>
+                                        <option value="Efectivo">Efectivo</option>
+                                        <option value="Transferencia">Transferencia</option>
+                                        <option value="Tarjeta">Tarjeta</option>
+                                        <option value="Addi">Addi</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- TARJETA 2: Descuento -->
+                            <div class="p-3 bg-light rounded border">
+                                <h5 class="font-weight-bold text-dark mb-3">🏷️ Aplicar Descuento</h5>
+
+                                <div id="errorDescuento"
+                                    class="alert alert-danger font-weight-bold py-2 small mb-3 d-none">
+                                    El precio con descuento no es válido.
+                                </div>
+                                <div id="exitoDescuento"
+                                    class="alert alert-success font-weight-bold py-2 small mb-3 d-none">
+                                    ✓ Descuento aplicado correctamente.
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label class="font-weight-bold text-dark">Precio Total con Descuento ($)</label>
+                                    <input type="text" id="inputPrecioDescuento" inputmode="numeric"
+                                        class="form-control form-control-lg text-primary font-weight-bold"
+                                        autocomplete="off">
+                                </div>
+
+                                <button type="button" id="btnAplicarDescuento"
+                                    class="btn btn-outline-primary btn-block font-weight-bold">
+                                    Aplicar Descuento
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary font-weight-bold" data-dismiss="modal">
+                        ← Regresar y Editar
+                    </button>
+                    <button type="button" id="btnConfirmarDefinitivo" class="btn btn-success font-weight-bold px-4">
+                        ¡Confirmar y Cobrar!
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts de jQuery y Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct"
+        crossorigin="anonymous"></script>
+
+    <script>
+        // 1. Cámara Web
+        const video = document.getElementById('webcam');
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => { video.srcObject = stream; })
+                .catch(err => { console.log("Cámara no disponible: ", err); });
+        }
+
+        let totalRealNumerico = 0;
+        let totalConDescuento = 0;
+
+        function obtenerInventario() {
+            let inv = localStorage.getItem('inventario_pos');
+            return inv ? JSON.parse(inv) : [];
+        }
+
+        function guardarInventario(inv) {
+            localStorage.setItem('inventario_pos', JSON.stringify(inv));
+        }
+
+        function calcularTotal() {
+            let total = 0;
+            let hayItems = false;
+
+            $('#listaProductos tr').each(function () {
+                if ($(this).hasClass('mensaje-carrito-vacio')) return;
+                hayItems = true;
+                const precio = parseInt($(this).data('precio')) || 0;
+                const cant = parseInt($(this).find('.cantidad').val()) || 1;
+                const subtotal = precio * cant;
+                $(this).find('.subtotal').text('$' + subtotal.toLocaleString('es-CO'));
+                total += subtotal;
+            });
+
+            if (!hayItems) {
+                $('#totalVenta').text('$0');
+            } else {
+                $('#totalVenta').text('$' + total.toLocaleString('es-CO'));
+            }
+        }
+
+        function agregarProductoAlCarrito(p) {
+            if ($('.mensaje-carrito-vacio').length > 0) {
+                $('#listaProductos').empty();
+            }
+
+            let opcionesTallasHtml = '<option value="" selected disabled>Seleccionar talla</option>';
+            if (p.variantes && p.variantes.length > 0) {
+                p.variantes.forEach(v => {
+                    opcionesTallasHtml += `<option value="${v.talla}" data-stock="${v.stock}">${v.talla} (${v.stock} disp.)</option>`;
+                });
+            } else {
+                opcionesTallasHtml += `<option value="Única" data-stock="999">Única</option>`;
+            }
+
+            const nuevaFila = `
+              <tr class="item-carrito" data-codigo="${p.codigo}" data-precio="${p.precio}">
+                <td>
+                  <span class="font-weight-bold d-block text-nombre-prod">${p.nombre}</span>
+                  <small class="text-muted">COD: #${p.codigo} | Cat: ${p.categoria}</small>
+                </td>
+                <td>
+                  <select class="form-control form-control-sm selector-talla font-weight-bold">
+                    ${opcionesTallasHtml}
+                  </select>
+                </td>
+                <td class="text-center">
+                  <div class="input-group input-group-sm justify-content-center">
+                    <button class="btn btn-outline-secondary btn-restar" type="button">-</button>
+                    <input type="text" class="form-control text-center cantidad" value="1" readonly style="max-width: 50px;">
+                    <button class="btn btn-outline-secondary btn-sumar" type="button">+</button>
+                  </div>
+                </td>
+                <td class="font-weight-bold subtotal text-right">$${p.precio.toLocaleString('es-CO')}</td>
+                <td class="text-center">
+                  <button class="btn btn-sm btn-outline-danger btn-eliminar font-weight-bold">Eliminar</button>
+                </td>
+              </tr>
+            `;
+            $('#listaProductos').append(nuevaFila);
+            calcularTotal();
+        }
+
+        // Buscador Manual
+        $('#btnBuscarManual').click(function () {
+            const query = $('#inputBusquedaManual').val().trim().toLowerCase();
+            const inventario = obtenerInventario();
+
+            const resultados = inventario.filter(prod =>
+                prod.nombre.toLowerCase().includes(query) || prod.codigo.toString().includes(query) || (prod.descripcionIA && prod.descripcionIA.toLowerCase().includes(query))
+            );
+
+            if (resultados.length === 0) {
+                alert("No se encontraron productos coincidentes en el inventario.");
+                return;
+            }
+
+            let htmlCards = '';
+            resultados.forEach(p => {
+                let stockTot = 0;
+                if (p.variantes) p.variantes.forEach(v => stockTot += parseInt(v.stock) || 0);
+                const img = p.imagen || "https://via.placeholder.com/150?text=Sin+Foto";
+
+                htmlCards += `
+                    <div class="col-12 col-md-4 mb-3">
+                      <div class="card h-100 shadow-sm border-0 text-center p-2">
+                        <div class="rounded overflow-hidden mb-2 d-flex align-items-center justify-content-center bg-light border" style="height: 110px;">
+                          <img src="${img}" alt="Producto" style="max-height: 100%; max-width: 100%; object-fit: cover;">
+                        </div>
+                        <div class="card-body p-1 d-flex flex-column justify-content-between">
+                          <div>
+                            <h6 class="font-weight-bold text-dark m-0 mb-1">${p.nombre}</h6>
+                            <small class="text-muted d-block mb-1">COD: #${p.codigo} | Stock: ${stockTot}</small>
+                            <span class="badge badge-success mb-2">$${p.precio.toLocaleString('es-CO')}</span>
+                          </div>
+                          <button type="button" class="btn btn-sm btn-warning font-weight-bold text-dark btn-seleccionar-producto btn-block" data-codigo="${p.codigo}">
+                            Seleccionar
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                `;
+            });
+
+            $('#contenedorTarjetasResultados').html(htmlCards);
+            $('#modalResultadosBusqueda').modal('show');
+        });
+
+        $(document).on('click', '.btn-seleccionar-producto', function () {
+            const codigoProd = $(this).data('codigo');
+            const inventario = obtenerInventario();
+            const productoEncontrado = inventario.find(p => parseInt(p.codigo) === parseInt(codigoProd));
+
+            if (productoEncontrado) {
+                agregarProductoAlCarrito(productoEncontrado);
+                $('#modalResultadosBusqueda').modal('hide');
+                $('#inputBusquedaManual').val('');
+            }
+        });
+
+        // Sumar con restricción de talla obligatoria
+        $(document).on('click', '.btn-sumar', function () {
+            let fila = $(this).closest('tr');
+            let selectTalla = fila.find('.selector-talla');
+            let selectedOption = selectTalla.find(':selected');
+
+            if (!selectTalla.val()) {
+                alert("⚠️ Por favor seleccione una talla antes de modificar la cantidad.");
+                return;
+            }
+
+            let stockMax = parseInt(selectedOption.data('stock')) || 0;
+            let input = $(this).siblings('.cantidad');
+            let valorActual = parseInt(input.val()) || 1;
+
+            if (valorActual < stockMax) {
+                input.val(valorActual + 1);
+                calcularTotal();
+            } else {
+                alert("⚠️ Has alcanzado el límite de stock disponible (" + stockMax + " unidades) para esta talla.");
+            }
+        });
+
+        $(document).on('click', '.btn-restar', function () {
+            let input = $(this).siblings('.cantidad');
+            if (parseInt(input.val()) > 1) {
+                input.val(parseInt(input.val()) - 1);
+                calcularTotal();
+            }
+        });
+
+        $(document).on('click', '.btn-eliminar', function () {
+            $(this).closest('tr').remove();
+            if ($('#listaProductos tr.item-carrito').length === 0) {
+                $('#listaProductos').html(`
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4 mensaje-carrito-vacio">
+                            🛒 El carrito está vacío. Usa el buscador para añadir productos.
+                        </td>
+                    </tr>
+                `);
+            }
+            calcularTotal();
+        });
+
+        // Cambio de talla con validación estricta de duplicados por variante y ajuste automático de stock
+        $(document).on('change', '.selector-talla', function () {
+            $('#alertaTalla').addClass('d-none');
+            $('#alertaStockExcedido').addClass('d-none');
+
+            let filaActual = $(this).closest('tr');
+            let codigoProd = filaActual.attr('data-codigo');
+            let nuevaTalla = $(this).val();
+
+            // Verificar si ya existe OTRA fila con el mismo producto y la misma talla
+            let filaDuplicada = false;
+            $('#listaProductos tr.item-carrito').each(function () {
+                if ($(this)[0] !== filaActual[0]) {
+                    if ($(this).attr('data-codigo') === codigoProd && $(this).find('.selector-talla').val() === nuevaTalla) {
+                        filaDuplicada = true;
+                    }
+                }
+            });
+
+            if (filaDuplicada) {
+                alert("⚠️ Ya tienes este producto agregado con la talla " + nuevaTalla + "");
+                // Revertir selección de talla
+                $(this).val('');
+                return;
+            }
+
+            let selectedOption = $(this).find(':selected');
+            let stockMax = parseInt(selectedOption.data('stock')) || 0;
+            let inputCantidad = filaActual.find('.cantidad');
+            let cantidadActual = parseInt(inputCantidad.val()) || 1;
+
+            if (cantidadActual > stockMax) {
+                inputCantidad.val(stockMax);
+                alert("⚠️ La cantidad superaba el stock de esta talla (" + stockMax + " disp.). Se ha ajustado automáticamente.");
+                calcularTotal();
+            }
+        });
+
+        $('#btnLimpiarCarrito').click(function () {
+            $('#listaProductos').html(`
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-4 mensaje-carrito-vacio">
+                        🛒 El carrito está vacío. Usa el buscador para añadir productos.
+                    </td>
+                </tr>
+            `);
+            $('#alertaStockExcedido').addClass('d-none');
+            calcularTotal();
+        });
+
+        $('#selectMetodoPago').change(function () {
+            if ($(this).val()) {
+                $('#errorMetodoPago').addClass('d-none');
+            }
+        });
+
+        $('#inputPrecioDescuento').on('input', function () {
+            let valorLimpio = $(this).val().replace(/\D/g, '');
+            if (valorLimpio !== '') {
+                let valorFormateado = parseInt(valorLimpio, 10).toLocaleString('es-CO');
+                $(this).val(valorFormateado);
+            } else {
+                $(this).val('');
+            }
+            $('#errorDescuento').addClass('d-none');
+            $('#exitoDescuento').addClass('d-none');
+        });
+
+        // Descuento máximo 10%
+        $('#btnAplicarDescuento').click(function () {
+            const valorIngresadoLimpio = $('#inputPrecioDescuento').val().replace(/\./g, '');
+            const valorIngresado = parseFloat(valorIngresadoLimpio);
+
+            const limiteMinimo = totalRealNumerico * 0.9;
+
+            if (isNaN(valorIngresado) || valorIngresado > totalRealNumerico || valorIngresado < limiteMinimo) {
+                $('#exitoDescuento').addClass('d-none');
+                $('#errorDescuento').removeClass('d-none');
+                totalConDescuento = totalRealNumerico;
+                $('#totalModalFinal').text('$' + totalRealNumerico.toLocaleString('es-CO'));
+                return;
+            }
+
+            $('#errorDescuento').addClass('d-none');
+            $('#exitoDescuento').removeClass('d-none');
+            totalConDescuento = valorIngresado;
+            $('#totalModalFinal').text('$' + valorIngresado.toLocaleString('es-CO'));
+        });
+
+        // Abrir Modal de Cobro con validación doble
+        $('#btnFinalizarCobrar').click(function () {
+            if ($('#listaProductos tr.item-carrito').length === 0) {
+                alert("No hay productos en el carrito para cobrar.");
+                return;
+            }
+
+            let faltaTalla = false;
+            let stockInsuficiente = false;
+
+            $('.item-carrito').each(function () {
+                let selectTalla = $(this).find('.selector-talla');
+                let tallaVal = selectTalla.val();
+                let cantidadVal = parseInt($(this).find('.cantidad').val()) || 1;
+                let stockMax = parseInt(selectTalla.find(':selected').data('stock')) || 0;
+
+                if (!tallaVal) {
+                    faltaTalla = true;
+                }
+                if (cantidadVal > stockMax) {
+                    stockInsuficiente = true;
+                }
+            });
+
+            if (faltaTalla) {
+                $('#alertaTalla').removeClass('d-none');
+                return;
+            }
+            $('#alertaTalla').addClass('d-none');
+
+            if (stockInsuficiente) {
+                $('#alertaStockExcedido').removeClass('d-none');
+                return;
+            }
+            $('#alertaStockExcedido').addClass('d-none');
+
+            $('#resumenModalProductos').empty();
+            $('#selectMetodoPago').val('');
+            $('#errorMetodoPago').addClass('d-none');
+            $('#inputPrecioDescuento').val('');
+            $('#errorDescuento').addClass('d-none');
+            $('#exitoDescuento').addClass('d-none');
+
+            totalRealNumerico = 0;
+
+            $('#listaProductos tr.item-carrito').each(function () {
+                const infoProducto = $(this).find('td:eq(0)').html();
+                const tallaSeleccionada = $(this).find('.selector-talla').val();
+                const cantidadVal = $(this).find('.cantidad').val();
+                const subtotalVal = $(this).find('.subtotal').text();
+
+                const precio = parseInt($(this).data('precio')) || 0;
+                const cant = parseInt(cantidadVal) || 1;
+                totalRealNumerico += (precio * cant);
+
+                const filaConstruida = `
+                    <tr>
+                      <td>${infoProducto}</td>
+                      <td><strong>${tallaSeleccionada}</strong></td>
+                      <td class="text-center">${cantidadVal}</td>
+                      <td class="font-weight-bold text-right">${subtotalVal}</td>
+                    </tr>
+                `;
+                $('#resumenModalProductos').append(filaConstruida);
+            });
+
+            totalConDescuento = totalRealNumerico;
+            $('#totalModalFinal').text('$' + totalRealNumerico.toLocaleString('es-CO'));
+            $('#modalConfirmarVenta').modal('show');
+        });
+
+        // Confirmar Definitivo y Descontar en LocalStorage
+        $('#btnConfirmarDefinitivo').click(function () {
+            const metodoPago = $('#selectMetodoPago').val();
+
+            if (!metodoPago) {
+                $('#errorMetodoPago').removeClass('d-none');
+                return;
+            }
+
+            $('#errorMetodoPago').addClass('d-none');
+
+            // Actualizar inventario en localStorage
+            let inventario = obtenerInventario();
+
+            $('#listaProductos tr.item-carrito').each(function () {
+                const codigoProd = parseInt($(this).attr('data-codigo'));
+                const tallaSeleccionada = $(this).find('.selector-talla').val();
+                const cantidadVendida = parseInt($(this).find('.cantidad').val()) || 1;
+
+                let productoEnInventario = inventario.find(p => parseInt(p.codigo) === codigoProd);
+
+                if (productoEnInventario && productoEnInventario.variantes) {
+                    let variante = productoEnInventario.variantes.find(v => v.talla.toLowerCase() === tallaSeleccionada.toLowerCase());
+                    if (variante) {
+                        variante.stock = Math.max(0, (parseInt(variante.stock) || 0) - cantidadVendida);
+                    }
+                }
+            });
+
+            guardarInventario(inventario);
+
+            // Cerrar modal y limpiar
+            $('#modalConfirmarVenta').modal('hide');
+            $('#listaProductos').html(`
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-4 mensaje-carrito-vacio">
+                        🛒 El carrito está vacío. Usa el buscador para añadir productos.
+                    </td>
+                </tr>
+            `);
+            calcularTotal();
+
+            $('#alertaVentaExitoso').fadeIn(200).delay(4000).fadeOut(300);
+        });
+    </script>
+</body>
+
+</html>

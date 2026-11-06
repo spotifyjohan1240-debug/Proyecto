@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+        integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous" />
+
+    <title>Alta de Producto Nuevo</title>
+</head>
+
+<body style="background-color: #f4f5f7;">
+    <div class="container-fluid min-vh-100 p-3 p-md-4 d-flex flex-column">
+
+        <!-- Barra superior de navegación -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h3 class="h4 font-weight-bold text-dark m-0">Registrar Producto Nuevo</h3>
+                <small class="text-muted">Captura la fotografía para IA, asigna código automático y registra el stock
+                    inicial.</small>
+            </div>
+            <a href="EntradasProveedores.html" class="btn btn-outline-secondary font-weight-bold">
+                ← Volver al Módulo
+            </a>
+        </div>
+
+        <!-- Alerta de éxito superior -->
+        <div id="alertaExito" class="alert alert-success font-weight-bold shadow-sm py-2 mb-3" style="display: none;">
+            ✓ ¡Producto registrado e ingresado al inventario con éxito!
+        </div>
+
+        <!-- Contenido Principal: Pantalla Dividida -->
+        <div class="row flex-fill">
+
+            <!-- PANEL IZQUIERDO: Escáner / Captura de Cámara para IA -->
+            <div class="col-12 col-lg-4 mb-4 mb-lg-0 d-flex flex-column">
+                <div class="card shadow-sm border-0 flex-fill d-flex flex-column justify-content-between p-3 bg-white">
+                    <div>
+                        <h5 class="card-title font-weight-bold text-center text-muted mb-3">
+                            Captura Fotográfica para IA
+                        </h5>
+
+                        <!-- Visor de la Cámara en Vivo -->
+                        <div
+                            class="embed-responsive embed-responsive-4by3 bg-dark rounded overflow-hidden shadow-inner mb-2 position-relative">
+                            <video id="webcam" class="embed-responsive-item" autoplay playsinline muted
+                                style="object-fit: cover;"></video>
+                            <canvas id="canvasCaptura" class="embed-responsive-item d-none"
+                                style="object-fit: cover;"></canvas>
+                        </div>
+
+                        <small class="text-muted text-center d-block mb-3">
+                            Ubique el producto frente a la cámara y capture la fotografía oficial.
+                        </small>
+
+                        <button type="button" id="btnTomarFoto"
+                            class="btn btn-primary btn-block font-weight-bold shadow-sm">
+                            📸 Tomar Foto para la IA
+                        </button>
+                        <button type="button" id="btnRetomarFoto"
+                            class="btn btn-outline-secondary btn-block font-weight-bold mt-2" style="display: none;">
+                            🔄 Repetir Captura
+                        </button>
+                    </div>
+
+                    <div class="mt-4 border-top pt-3 text-center">
+                        <span class="badge badge-info p-2 font-weight-bold">Estado de Captura: <span
+                                id="lblEstadoFoto">Pendiente</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANEL DERECHO: Formulario Completo de Alta de Producto -->
+            <div class="col-12 col-lg-8 d-flex flex-column">
+                <div class="card shadow-sm border-0 flex-fill p-4 bg-white">
+                    <h5 class="font-weight-bold text-dark border-bottom pb-2 mb-3">
+                        📋 Especificaciones del Producto Nuevo
+                    </h5>
+
+                    <form id="formAltaProducto">
+                        <div class="row">
+                            <!-- Código Automático (No editable) -->
+                            <div class="col-12 col-md-3 form-group">
+                                <label class="font-weight-bold text-muted small">Código Asignado</label>
+                                <input type="text" id="inputCodigoAuto"
+                                    class="form-control font-weight-bold bg-light text-primary" readonly>
+                            </div>
+                            <!-- Nombre / Referencia -->
+                            <div class="col-12 col-md-9 form-group">
+                                <label class="font-weight-bold text-dark small">Nombre o Referencia del Producto
+                                    *</label>
+                                <input type="text" id="inputNombreProducto" class="form-control" required>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Categoría -->
+                            <div class="col-12 col-md-6 form-group">
+                                <label class="font-weight-bold text-dark small">Categoría *</label>
+                                <select id="selectCategoria" class="form-control" required>
+                                    <option value="Ropa" selected>Ropa</option>
+                                    <option value="Calzado">Calzado</option>
+                                    <option value="Tecnología">Tecnología</option>
+                                    <option value="Maquillaje">Maquillaje</option>
+                                    <option value="Juguetes">Juguetes</option>
+                                    <option value="Varios">Varios</option>
+                                </select>
+                            </div>
+                            <!-- Género / Línea -->
+                            <div class="col-12 col-md-6 form-group">
+                                <label class="font-weight-bold text-dark small">Género / Línea *</label>
+                                <select id="selectGenero" class="form-control" required>
+                                    <option value="Unisex" selected>Unisex</option>
+                                    <option value="Niño">Niño</option>
+                                    <option value="Niña">Niña</option>
+                                    <option value="Hombre">Hombre</option>
+                                    <option value="Mujer">Mujer</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Selector de Proveedor con Buscador Predictivo -->
+                        <div class="form-group">
+                            <label class="font-weight-bold text-dark small">Proveedor que surte *</label>
+                            <input type="text" id="inputBuscarProveedor" class="form-control" list="listaProveedores"
+                                placeholder="Escribe para buscar proveedor por nombre o ciudad..." autocomplete="off"
+                                required>
+                            <datalist id="listaProveedores">
+                                <!-- Se llena dinámicamente con JS -->
+                            </datalist>
+                        </div>
+
+                        <!-- Descripción para la IA (Campo preparado) -->
+                        <div class="form-group">
+                            <label class="font-weight-bold text-dark small">Descripción para IA (Generación Automática
+                                Futura)</label>
+                            <textarea id="txtDescripcionIA" class="form-control" rows="2"
+                                placeholder="Espacio reservado para que el modelo de reconocimiento llene la descripción detallada del producto automáticamente..."></textarea>
+                        </div>
+
+                        <!-- Costos y Precios Limpios (Sin ejemplos de texto) -->
+                        <div class="row bg-light p-3 rounded border mb-3">
+                            <div class="col-12 col-md-6 form-group mb-md-0">
+                                <label class="font-weight-bold text-dark small">Costo Unitario de Compra ($) *</label>
+                                <input type="text" id="inputCostoUnitario"
+                                    class="form-control font-weight-bold text-success" autocomplete="off" required>
+                            </div>
+                            <div class="col-12 col-md-6 form-group mb-0">
+                                <label class="font-weight-bold text-dark small">Precio de Venta al Público ($) *</label>
+                                <input type="text" id="inputPrecioVenta"
+                                    class="form-control font-weight-bold text-primary" autocomplete="off" required>
+                            </div>
+                        </div>
+
+                        <!-- Ingreso Inicial de Tallas y Cantidades -->
+                        <div class="form-group">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="font-weight-bold text-dark m-0">Stock Inicial por Talla / Variante
+                                    *</label>
+                                <button type="button" id="btnAgregarFilaTalla"
+                                    class="btn btn-sm btn-outline-primary font-weight-bold">+ Añadir Talla /
+                                    Variante</button>
+                            </div>
+                            <small class="text-muted d-block mb-2">Añade las tallas y unidades iniciales con las que
+                                ingresa este producto al sistema.</small>
+                            <div class="table-responsive">
+                                <table class="table table-bordered align-middle mb-0">
+                                    <thead class="thead-light">
+                                        <tr>
+                                            <th>Talla / Variante</th>
+                                            <th class="text-center" style="width: 180px;">Unidades Iniciales</th>
+                                            <th class="text-center" style="width: 80px;">Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tablaVariantesNuevas">
+                                        <tr>
+                                            <td colspan="3" class="text-center text-muted py-3 mensaje-vacio">No hay
+                                                tallas agregadas. Usa el botón superior para añadir.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Botón para disparar la confirmación -->
+                        <button type="button" id="btnIniciarRegistro"
+                            class="btn btn-success btn-lg btn-block font-weight-bold shadow-sm mt-4">
+                            Guardar y Registrar en Inventario
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MODAL DE CONFIRMACIÓN -->
+    <div class="modal fade" id="modalConfirmacion" tabindex="-1" role="dialog" aria-labelledby="modalConfLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title font-weight-bold" id="modalConfLabel">
+                        ⚠️ Confirmar Registro de Producto Nuevo
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted">Verifica los datos del nuevo producto antes de ser ingresado al sistema POS:
+                    </p>
+                    <ul class="list-group mb-3">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Código Asignado:</span>
+                            <strong id="confCodigo" class="text-primary"></strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Nombre / Referencia:</span>
+                            <strong id="confNombre"></strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Categoría / Género:</span>
+                            <strong id="confCatGen" class="text-secondary"></strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Costo Unitario:</span>
+                            <strong id="confCosto" class="text-success"></strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Precio de Venta:</span>
+                            <strong id="confPrecio" class="text-primary"></strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Total Stock Inicial:</span>
+                            <strong id="confUnidadesTotales" class="text-dark"></strong>
+                        </li>
+                    </ul>
+                    <p class="font-weight-bold text-dark text-center mb-0">¿Estás seguro de dar de alta este producto?
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary font-weight-bold"
+                        data-dismiss="modal">Cancelar</button>
+                    <button type="button" id="btnAceptarGuardarDefinitivo"
+                        class="btn btn-success font-weight-bold px-4">Aceptar y Registrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts de jQuery y Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct"
+        crossorigin="anonymous"></script>
+
+    <script>
+        // Inicialización de la Cámara Web
+        const video = document.getElementById('webcam');
+        const canvas = document.getElementById('canvasCaptura');
+        let fotoCapturadaBase64 = null;
+
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => { video.srcObject = stream; })
+                .catch(err => { console.log("Cámara no disponible: ", err); });
+        }
+
+        function obtenerInventario() {
+            let inv = localStorage.getItem('inventario_pos');
+            return inv ? JSON.parse(inv) : [];
+        }
+
+        function guardarInventario(inv) {
+            localStorage.setItem('inventario_pos', JSON.stringify(inv));
+        }
+
+        function cargarProveedoresDatalist() {
+            let provs = localStorage.getItem('proveedores_pos');
+            let listaProvs = provs ? JSON.parse(provs) : [];
+            const $datalist = $('#listaProveedores');
+            $datalist.empty();
+
+            listaProvs.forEach(p => {
+                $datalist.append(`<option value="${p.nombre} (${p.lugar || 'N/A'})">`);
+            });
+        }
+
+        function asignarCodigoAutomatico() {
+            const inventario = obtenerInventario();
+            let maxCodigo = 0;
+
+            if (inventario.length > 0) {
+                const codigos = inventario.map(p => parseInt(p.codigo) || 0);
+                maxCodigo = Math.max(...codigos);
+            }
+
+            const nuevoCodigo = maxCodigo + 1;
+            $('#inputCodigoAuto').val('#' + nuevoCodigo);
+            return nuevoCodigo;
+        }
+
+        function generarOpcionesTallas(categoria) {
+            let html = '<option value="" selected disabled>-- Seleccionar Talla --</option>';
+
+            if (categoria === 'Ropa') {
+                html += `
+                    <optgroup label="Bebés">
+                        <option value="0-3 Meses">0-3 Meses</option>
+                        <option value="3-6 Meses">3-6 Meses</option>
+                        <option value="6-9 Meses">6-9 Meses</option>
+                        <option value="9-12 Meses">9-12 Meses</option>
+                        <option value="12-18 Meses">12-18 Meses</option>
+                        <option value="18-24 Meses">18-24 Meses</option>
+                    </optgroup>
+                    <optgroup label="Infantil">
+                        <option value="Talla 0">Talla 0</option>
+                        <option value="Talla 2">Talla 2</option>
+                        <option value="Talla 4">Talla 4</option>
+                        <option value="Talla 6">Talla 6</option>
+                        <option value="Talla 8">Talla 8</option>
+                        <option value="Talla 10">Talla 10</option>
+                        <option value="Talla 12">Talla 12</option>
+                        <option value="Talla 14">Talla 14</option>
+                        <option value="Talla 16">Talla 16</option>
+                    </optgroup>
+                    <optgroup label="Adultos">
+                        <option value="XS">XS</option>
+                        <option value="S">S</option>
+                        <option value="M">M</option>
+                        <option value="L">L</option>
+                        <option value="XL">XL</option>
+                        <option value="2XL">2XL</option>
+                        <option value="3XL">3XL</option>
+                        <option value="4XL">4XL</option>
+                        <option value="5XL">5XL</option>
+                    </optgroup>
+                `;
+            } else if (categoria === 'Calzado') {
+                html += `<optgroup label="Tallas de Calzado">`;
+                for (let i = 15; i <= 50; i++) {
+                    html += `<option value="Talla ${i}">Talla ${i}</option>`;
+                }
+                html += `</optgroup>`;
+            } else {
+                html += `<option value="Única" selected>Única</option>`;
+            }
+            return html;
+        }
+
+        $(document).ready(function () {
+            asignarCodigoAutomatico();
+            cargarProveedoresDatalist();
+
+            // Captura de Foto para la IA desde la Cámara Web
+            $('#btnTomarFoto').click(function () {
+                const context = canvas.getContext('2d');
+                canvas.width = video.videoWidth || 640;
+                canvas.height = video.videoHeight || 480;
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                fotoCapturadaBase64 = canvas.toDataURL('image/jpeg');
+
+                $(video).addClass('d-none');
+                $(canvas).removeClass('d-none');
+
+                $('#btnTomarFoto').hide();
+                $('#btnRetomarFoto').show();
+                $('#lblEstadoFoto').text('Capturada ✓').parent().removeClass('badge-info').addClass('badge-success');
+            });
+
+            // Repetir Captura
+            $('#btnRetomarFoto').click(function () {
+                fotoCapturadaBase64 = null;
+                $(canvas).addClass('d-none');
+                $(video).removeClass('d-none');
+
+                $('#btnRetomarFoto').hide();
+                $('#btnTomarFoto').show();
+                $('#lblEstadoFoto').text('Pendiente').parent().removeClass('badge-success').addClass('badge-info');
+            });
+
+            // Formato automático de miles en Costo y Precio de Venta
+            $(document).on('input', '#inputCostoUnitario, #inputPrecioVenta', function () {
+                let valorLimpio = $(this).val().replace(/\D/g, '');
+                if (valorLimpio !== '') {
+                    let valorFormateado = parseInt(valorLimpio, 10).toLocaleString('es-CO');
+                    $(this).val(valorFormateado);
+                } else {
+                    $(this).val('');
+                }
+            });
+
+            // Al cambiar de categoría, reiniciar la lista de variantes agregadas
+            $('#selectCategoria').change(function () {
+                $('#tablaVariantesNuevas').html(`
+                    <tr>
+                        <td colspan="3" class="text-center text-muted py-3 mensaje-vacio">No hay tallas agregadas. Usa el botón superior para añadir.</td>
+                    </tr>
+                `);
+            });
+
+            // Añadir fila de talla dinámicamente según categoría activa
+            $('#btnAgregarFilaTalla').click(function () {
+                if ($('.mensaje-vacio').length > 0) {
+                    $('#tablaVariantesNuevas').empty();
+                }
+
+                const catSeleccionada = $('#selectCategoria').val();
+                const opcionesTallasHTML = generarOpcionesTallas(catSeleccionada);
+
+                const nuevaFila = `
+                    <tr>
+                        <td>
+                            <select class="form-control font-weight-bold select-nombre-talla">
+                                ${opcionesTallasHTML}
+                            </select>
+                        </td>
+                        <td class="text-center">
+                            <input type="number" min="1" value="1" class="form-control text-center input-cantidad-talla font-weight-bold">
+                        </td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar-fila">X</button>
+                        </td>
+                    </tr>
+                `;
+                $('#tablaVariantesNuevas').append(nuevaFila);
+            });
+
+            // Eliminar fila de talla
+            $(document).on('click', '.btn-eliminar-fila', function () {
+                $(this).closest('tr').remove();
+                if ($('#tablaVariantesNuevas tr').length === 0) {
+                    $('#tablaVariantesNuevas').html(`
+                        <tr>
+                            <td colspan="3" class="text-center text-muted py-3 mensaje-vacio">No hay tallas agregadas. Usa el botón superior para añadir.</td>
+                        </tr>
+                    `);
+                }
+            });
+
+            // Validar e Iniciar Registro
+            $('#btnIniciarRegistro').click(function () {
+                const nombre = $('#inputNombreProducto').val().trim();
+                const proveedorTexto = $('#inputBuscarProveedor').val().trim();
+                const costoStr = $('#inputCostoUnitario').val().replace(/\./g, '');
+                const precioStr = $('#inputPrecioVenta').val().replace(/\./g, '');
+
+                if (!fotoCapturadaBase64) {
+                    alert("⚠️ Es necesario capturar la fotografía oficial del producto con la cámara antes de continuar.");
+                    return;
+                }
+
+                if (!nombre || !proveedorTexto || !costoStr || !precioStr) {
+                    alert("⚠️ Por favor complete todos los campos obligatorios (*).");
+                    return;
+                }
+
+                if ($('.mensaje-vacio').length > 0 || $('.select-nombre-talla').length === 0) {
+                    alert("⚠️ Debe añadir al menos una talla o variante inicial para el producto.");
+                    return;
+                }
+
+                let totalUnidades = 0;
+                let errorTallaSinSeleccionar = false;
+
+                $('.input-cantidad-talla').each(function () {
+                    totalUnidades += parseInt($(this).val()) || 0;
+                });
+
+                $('.select-nombre-talla').each(function () {
+                    if (!$(this).val()) {
+                        errorTallaSinSeleccionar = true;
+                    }
+                });
+
+                if (errorTallaSinSeleccionar) {
+                    alert("⚠️ Hay filas de tallas sin seleccionar en el menú desplegable.");
+                    return;
+                }
+
+                if (totalUnidades <= 0) {
+                    alert("⚠️ El stock inicial debe ser mayor a 0 unidades.");
+                    return;
+                }
+
+                // Cargar datos en el modal de confirmación
+                $('#confCodigo').text($('#inputCodigoAuto').val());
+                $('#confNombre').text(nombre);
+                $('#confCatGen').text($('#selectCategoria').val() + ' / ' + $('#selectGenero').val());
+                $('#confCosto').text('$' + parseInt(costoStr).toLocaleString('es-CO'));
+                $('#confPrecio').text('$' + parseInt(precioStr).toLocaleString('es-CO'));
+                $('#confUnidadesTotales').text(totalUnidades + ' unidades');
+
+                $('#modalConfirmacion').modal('show');
+            });
+
+            // Aceptar y Guardar Definitivo en localStorage
+            $('#btnAceptarGuardarDefinitivo').click(function () {
+                const codigoNum = parseInt($('#inputCodigoAuto').val().replace('#', ''));
+                const nombre = $('#inputNombreProducto').val().trim();
+                const categoria = $('#selectCategoria').val();
+                const genero = $('#selectGenero').val();
+                const proveedorTexto = $('#inputBuscarProveedor').val().trim();
+                const descripcionIA = $('#txtDescripcionIA').val().trim() || "Descripción pendiente por generación de IA.";
+                const costo = parseFloat($('#inputCostoUnitario').val().replace(/\./g, ''));
+                const precio = parseFloat($('#inputPrecioVenta').val().replace(/\./g, ''));
+
+                let proveedorNombreReal = proveedorTexto.split(' (')[0];
+                let provs = JSON.parse(localStorage.getItem('proveedores_pos') || '[]');
+                let provObj = provs.find(p => p.nombre.toLowerCase() === proveedorNombreReal.toLowerCase());
+                let proveedorData = provObj ? { nombre: provObj.nombre, contacto: "Tel: " + provObj.telefono } : { nombre: proveedorNombreReal, contacto: "Tel: N/A" };
+
+                // Recopilar variantes/tallas
+                let variantes = [];
+                $('#tablaVariantesNuevas tr').each(function () {
+                    const tallaVal = $(this).find('.select-nombre-talla').val();
+                    const cantVal = parseInt($(this).find('.input-cantidad-talla').val()) || 0;
+                    if (tallaVal && cantVal > 0) {
+                        variantes.push({
+                            talla: tallaVal,
+                            stock: cantVal
+                        });
+                    }
+                });
+
+                const nuevoProducto = {
+                    codigo: codigoNum,
+                    nombre: nombre,
+                    categoria: categoria,
+                    genero: genero,
+                    imagen: fotoCapturadaBase64,
+                    descripcionIA: descripcionIA,
+                    proveedor: proveedorData,
+                    costo: costo,
+                    precio: precio,
+                    variantes: variantes
+                };
+
+                let inventario = obtenerInventario();
+                inventario.push(nuevoProducto);
+                guardarInventario(inventario);
+
+                $('#modalConfirmacion').modal('hide');
+                $('#formAltaProducto')[0].reset();
+
+                // Reiniciar estado de cámara
+                fotoCapturadaBase64 = null;
+                $(canvas).addClass('d-none');
+                $(video).removeClass('d-none');
+                $('#btnRetomarFoto').hide();
+                $('#btnTomarFoto').show();
+                $('#lblEstadoFoto').text('Pendiente').parent().removeClass('badge-success').addClass('badge-info');
+
+                // Reiniciar tabla de tallas y asignar nuevo código autoincremental
+                $('#tablaVariantesNuevas').html(`
+                    <tr>
+                        <td colspan="3" class="text-center text-muted py-3 mensaje-vacio">No hay tallas agregadas. Usa el botón superior para añadir.</td>
+                    </tr>
+                `);
+
+                asignarCodigoAutomatico();
+
+                $('#alertaExito').fadeIn(200).delay(4000).fadeOut(300);
+            });
+        });
+    </script>
+</body>
+
+</html>
